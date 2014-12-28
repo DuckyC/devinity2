@@ -1,8 +1,8 @@
 local lp = LocalPlayer()
 local MapEntsLookupTable = {["AsteroidField"] = 1,["Planet"] = 1,["Station"] = 1,["GasCloud"] = 1,["BlackHole"] = 1}
 
-function DV2P.GetDistance(pl, ent)
-	return ( ( ent.Pos - pl.PlayerPos ) + ( ent.FloatPos - pl.FloatPos ) ):Length()
+function DV2P.GetDistance(ent1, ent2)
+	return ( ( (ent1.PlayerPos and ent1.PlayerPos or ent1.Pos) - (ent2.PlayerPos and ent2.PlayerPos or ent2.Pos) ) + ( ent1.FloatPos - ent2.FloatPos ) ):Length()
 end
 function DV2P.GetLocalSystemPos(pl)
 	for k,v in pairs(GAMEMODE.MapEnts) do
@@ -49,7 +49,7 @@ function DV2P.CanDock(dock)
 end
 
 function DV2P.IsMoving()
-	if lp.SimulateSpeed and lp.SimulateSpeed <= 0.5 then return false end
+	if lp.SimulateSpeed and lp.SimulateSpeed <= 0.1 then return false end
 	if not self.WarpDest then return false end
 	return true
 end
