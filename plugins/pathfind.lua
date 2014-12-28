@@ -454,23 +454,23 @@ function OpenMap()
 		
 		
 		function warpBtn:DoClick()
+			local class = localDropdown:GetText()
 			local num = tonumber( systemInput:GetText() )
-			if num then
-				xxxAddon.pathfinder:StartWarpToID( num )
-			else
-				local class = localDropdown:GetText()
+			local callback = function( plyPos, floatPos )
+				local ent = xxxAddon.pathfinder:GetMapEntClosest( plyPos, floatPos, class )
 				
-				xxxAddon.pathfinder:StartWarpToName( systemInput:GetText(), function( plyPos, floatPos )
-					local ent = xxxAddon.pathfinder:GetMapEntClosest( plyPos, floatPos, class )
-					
-					if ent then
-						xxxAddon.pathfinder:WarpToMapEnt( ent, function()
-							LocalPlayer():AddNote( "Arrived to something" );
-							surface.PlaySound( "ambient/levels/citadel/portal_open1_adpcm.wav" )
-						end )
-					end
-				end )
-				-- xxxAddon.pathfinder:WarpToMapEntNearest( LocalPlayer().PlayerPos, LocalPlayer().FloatPos, localDropdown:GetText() )
+				if ent then
+					xxxAddon.pathfinder:WarpToMapEnt( ent, function()
+						LocalPlayer():AddNote( "Arrived to destination" );
+						surface.PlaySound( "ambient/levels/citadel/portal_open1_adpcm.wav" )
+					end )
+				end
+			end
+
+			if num then
+				xxxAddon.pathfinder:StartWarpToID( num, callback )
+			else
+				xxxAddon.pathfinder:StartWarpToName( systemInput:GetText(), callback )
 			end
 			
 			surface.PlaySound( "buttons/button24.wav" )
