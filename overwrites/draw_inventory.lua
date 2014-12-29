@@ -89,19 +89,22 @@ function DrawInventory()
 						local menu = DermaMenu() 
 						menu.ID = k
 						menu.Paint = function(s,w,h) DrawRect(0,0,w,h,MAIN_GUICOLOR) end
-						menu:AddOption( "Equip 64", function() 
-							local lp = LocalPlayer()
-							local equipment = lp:GetEquipment()
-							local weps = 0
-							local slot = 0
-							repeat
-								slot = slot + 1
-								if not equipment[slot] then
-									RequestEquipItem(slot,menu.ID)
-									weps = weps + 1
-								end
-							until(weps >= lp.Inventory[menu.ID].Quantity or slot >= 64)
-						end ):SetColor(MAIN_TEXTCOLOR)
+						if lp.Inventory[menu.ID].Data.Material == nil then 
+							menu:AddOption( "Equip 64", function() 
+								local lp = LocalPlayer()
+
+								local equipment = lp:GetEquipment()
+								local weps = 0
+								local slot = 0
+								repeat
+									slot = slot + 1
+									if not equipment[slot] then
+										RequestEquipItem(slot,menu.ID)
+										weps = weps + 1
+									end
+								until(weps >= lp.Inventory[menu.ID].Quantity or slot >= 64)
+							end ):SetColor(MAIN_TEXTCOLOR)
+						end
 						menu:AddOption( "Delete", function() lp:RequestDeleteItem(menu.ID,v.Quantity) end ):SetColor(MAIN_TEXTCOLOR)
 						menu:AddOption( "Delete 1", function() lp:RequestDeleteItem(menu.ID,1) end ):SetColor(MAIN_TEXTCOLOR)
 						menu:AddOption( "Drop stack", function() LaunchJettisonObject(menu.ID) end ):SetColor(MAIN_TEXTCOLOR)
