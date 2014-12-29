@@ -124,7 +124,7 @@ function DV2P.pathfinder:GetMapEntClosest( pos, floatPos, class )
 end
 
 function DV2P.pathfinder:StartWarpToID( id, callback )
-	pcall( function()
+	xpcall( function()
 		local sysData = GAMEMODE.SolarSystems[ id ]
 		
 		if not sysData then
@@ -133,11 +133,11 @@ function DV2P.pathfinder:StartWarpToID( id, callback )
 		end
 		
 		self:StartWarpTo( sysData, callback )
-	end )
+	end, function( err ) print( err ) end )
 end
 
 function DV2P.pathfinder:StartWarpToName( name, callback )
-	pcall( function()
+	xpcall( function()
 		local sysData = self:GetSystem( name )
 		
 		if not sysData then
@@ -146,13 +146,13 @@ function DV2P.pathfinder:StartWarpToName( name, callback )
 		end
 		
 		self:StartWarpTo( sysData, callback )
-	end )
+	end, function( err ) print( err ) end )
 end
 
 function DV2P.pathfinder:StartWarpTo( sysData, callback )
 	if not sysData then return end
 	
-	local success, err = pcall( function()
+	xpcall( function()
 		local lp = LocalPlayer()
 		
 		if lp.Docked then 
@@ -180,9 +180,7 @@ function DV2P.pathfinder:StartWarpTo( sysData, callback )
 		self.path = nil
 		self.fullpath = nil
 		self.callback = callback
-	end )
-	
-	if not success then print( err ) end
+	end, function( err ) print( err ) end )
 end
 
 function DV2P.pathfinder:FinishPath()
@@ -342,26 +340,24 @@ end
 
 hook.Add( "Think", "DV2P_Pathfinder_Think", function()
 	if DV2P.pathfinder then
-		local success, err = pcall( function()
+		xpcall( function()
 			DV2P.pathfinder:Think()
-		end )
-		
-		if not success then print( err ) end
+		end, function( err ) print( err ) end )
 	end
 end )
 
 
 function OpenMap()
 	DV2P.pathfinder.overrides.OpenMap()
-	pcall( function()
+	xpcall( function()
 		DV2P.pathfinder.overrides.MAP_Frame_Paint = DV2P.pathfinder.overrides.MAP_Frame_Paint or MAP_Frame.Paint
 	
 		function MAP_Frame:Paint( w, h )
 			DV2P.pathfinder.overrides.MAP_Frame_Paint( self, w, h )
 			
-			pcall( function()
-				DV2P.pathfinder.pathfinder:PaintPanel( self, w, h )
-			end )
+			xpcall( function()
+				DV2P.pathfinder:PaintPanel( self, w, h )
+			end, function( err ) print( err ) end )
 		end
 		
 		if DV2P.pathfinder.vguiInitialized then
@@ -503,5 +499,5 @@ function OpenMap()
 		end
 		
 		DV2P.pathfinder.vguiInitialized = true
-	end )
+	end, function( err ) print( err ) end )
 end
