@@ -23,7 +23,7 @@ hook.Add("LuaError", "Error receiver", function(is_runtime_error, source_file, s
 	return true 
 end)
 
-DV2P = {}
+DV2P = DV2P or {}
 local PATH = "lua/menu_plugins/devinity2/"
 
 function DV2P.Include(path, v)
