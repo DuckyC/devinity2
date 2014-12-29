@@ -9,7 +9,7 @@ local function AddButton(x,y,tooltip, doclick)
 	if (input.IsMouseInBox(x,y,16,16)) then
 		DrawRect(x,y,16,16,MAIN_GREENCOLOR) 
 		DrawOutlinedRect(x,y,16,16,Outer)
-		if (input.MousePress(MOUSE_LEFT,"OpenPluginMenu")) then
+		if (input.MousePress(MOUSE_LEFT,"SecretButtons_"..tooltip)) then
 			doclick()
 		end
 		local nx,ny 	= xh, SH-200

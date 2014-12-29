@@ -1,23 +1,27 @@
-local ownfaction = LocalPlayer():GetFaction()
-local OtherColor = Color(255,0,0)
+local UnknownFaction = Color(150,150,150,255)
+local OwnFaction = Color(0, 200, 0)
+local EnemyFaction = Color(255,0,0)
 
 local function DrawRadarPlayer(faction, ply, y)
 	local Class, ID = DV2P.GetLocalSystemPos(ply)
+	local ownfaction = LocalPlayer():GetFaction()
 	surface.SetFont("DefaultSmall")
 
-	local w1, h1 = surface.GetTextSize( faction )
+	local w1, h1 = surface.GetTextSize( ply:GetName() .." | "..Class.." "..ID)
 	DrawText(ply:GetName() .." | "..Class.." "..ID, "DefaultSmall", 202, y, MAIN_TEXTCOLOR)
 	faction = (faction != "") and faction or "None"
 	
-	local w2, h2 = surface.GetTextSize( faction )
-	DrawText(faction, "DefaultSmall", 202-w2-5, y, (ownfaction == faction) and MAIN_TEXTCOLOR or OtherColor)
+	local col = (ownfaction == faction) and OwnFaction or UnknownFaction
 
-	if input.IsMouseInBox(202-w2-5,y,w1+w2+5,h2) then
-		//print(ply:GetName())
+	local w2, h2 = surface.GetTextSize( faction )
+	DrawText(faction, "DefaultSmall", 202-w2-5, y, col)
+
+	if input.IsMouseInBox(202-w2-5,y,w1+w2+5,h2) and (input.MousePress(MOUSE_LEFT,"OpenPlayerinfo_"..ply:GetName())) then
+		DV2P.ShowPlayerInfo(ply)
 	end
 end
 hook.Add("HUDPaint", "Devinty2SystemRadar", function()
-	
+	local ownfaction = LocalPlayer():GetFaction()
 	local factions = {}
 	for k, v in pairs( player.GetAllInRegion( LocalPlayer():GetRegion() ) ) do 
 		local fac = v:GetFaction()
