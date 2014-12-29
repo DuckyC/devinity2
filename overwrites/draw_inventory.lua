@@ -91,15 +91,15 @@ function DrawInventory()
 						menu.Paint = function(s,w,h) DrawRect(0,0,w,h,MAIN_GUICOLOR) end
 						menu:AddOption( "Equip 64", function() 
 							local lp = LocalPlayer()
+							local equipment = lp:GetEquipment()
 							local weps = 0
 							local slot = 0
 							repeat
 								slot = slot + 1
-								if not lp.Equipment[slot] then
+								if not equipment[slot] then
 									RequestEquipItem(slot,menu.ID)
 									weps = weps + 1
 								end
-								print(slot, weps)
 							until(weps >= lp.Inventory[menu.ID].Quantity or slot >= 64)
 						end ):SetColor(MAIN_TEXTCOLOR)
 						menu:AddOption( "Delete", function() lp:RequestDeleteItem(menu.ID,v.Quantity) end ):SetColor(MAIN_TEXTCOLOR)
