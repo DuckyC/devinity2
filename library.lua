@@ -18,12 +18,19 @@ function DV2P.IsAt(Class)
 	return AtClass == Class 
 end
 
-function DV2P.GetNearest(Class)
+function DV2P.GetNearest( Class )
 	local objects = {}
-	for k,v in pairs(GAMEMODE.MapEnts) do if v.Class == Class then objects[#objects+1] = v end end
-	table.sort(objects, function(a,b) return DV2P.GetDistance(lp, a) < DV2P.GetDistance(lp, b) end)
-	if table.Count(objects) > 0 and objects[1] then
-		return objects[1]
+	local count = 0
+	for k,v in pairs( GAMEMODE.MapEnts ) do
+		if not Class || v.Class == Class then
+			objects[ #objects + 1 ] = v
+			count = count + 1
+		end
+	end
+	
+	table.sort( objects, function( a, b ) return DV2P.GetDistance( lp, a ) < DV2P.GetDistance( lp, b ) end )
+	if count > 0 and objects[ 1 ] then
+		return objects[ 1 ]
 	end
 end
 function DV2P.WarpToNearest(Class)

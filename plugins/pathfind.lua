@@ -1,5 +1,7 @@
 local Zero = Vector( 0, 0, 0 )
 
+PrintTable( DV2P.GetNearest() )
+
 DV2P.pathfinder = DV2P.pathfinder or {
 	vguiInitialized = false,
 	mapDerma = {},
