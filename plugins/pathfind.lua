@@ -1,10 +1,13 @@
 local Zero = Vector( 0, 0, 0 )
+local lp = LocalPlayer()
+local MatTarget = surface.GetTextureID("devinity2/hud/target_white")
 
 DV2P.pathfinder = DV2P.pathfinder or {
 	vguiInitialized = false,
 	mapDerma = {},
 	overrides = {},
-	nextWarpTime = 0
+	nextWarpTime = 0,
+	warpDelay = 2
 }
 
 DV2P.pathfinder.overrides.OpenMap = DV2P.pathfinder.overrides.OpenMap or OpenMap
@@ -42,14 +45,6 @@ function input.KeyPress( key, stuff )
 	end
 end
 
-function DV2P.pathfinder:GetSystem( name )
-	for k, v in pairs( GAMEMODE.SolarSystems ) do
-		if v.Name:lower() == name:lower() then
-			return v
-		end
-	end
-end
-
 function DV2P.pathfinder:GetOptimalSystem( dest, origin, range )
 	if not range then return end
 	if not dest or not origin then return end
@@ -71,34 +66,58 @@ function DV2P.pathfinder:GetOptimalSystem( dest, origin, range )
 	return closest
 end
 
-function DV2P.pathfinder:CalculatePath( dest, origin, range )
+function DV2P.pathfinder:CalculatePath( dest, origin, range, straight )
 	local dest_dist = dest:Distance( origin )
 	
 	local path = {}
-	
-	local maxIterations = #GAMEMODE.SolarSystems
-	local iterations = 0
-	
 	local foundDest = false
-	local curr = origin
-	while iterations <= maxIterations do
-		iterations = iterations + 1
+	
+	if straight then
+		local numJumps = math.ceil( dest_dist / range )
+
+		local prev = origin
+		for i = 1, numJumps do
+			local dir = ( dest - prev ):GetNormalized()
+			local pos = nil
+
+			if prev:Distance( dest ) <= range then
+				pos = dest
+				foundDest = true
+			else
+				pos = prev + dir * ( range * 0.99 )
+			end
+
+			path[ #path + 1 ] = pos
+			
+			if foundDest then break end
+
+			prev = pos
+		end
+	else
+		local maxIterations = #GAMEMODE.SolarSystems
+		local iterations = 0
 		
-		if curr:Distance( dest ) <= MAIN_SOLARSYSTEM_RADIUS then
-			foundDest = true
-			break
+		local curr = origin
+		while iterations <= maxIterations do
+			iterations = iterations + 1
+			
+			if curr:Distance( dest ) <= MAIN_SOLARSYSTEM_RADIUS then
+				foundDest = true
+				break
+			end
+			
+			local next = self:GetOptimalSystem( dest, curr, range )
+			
+			if not next then return end
+			
+			path[ #path + 1 ] = next
+			curr = next.Pos
 		end
 		
-		local next = self:GetOptimalSystem( dest, curr, range )
-		
-		if not next then return end
-		
-		path[ #path + 1 ] = next
-		curr = next.Pos
 	end
-	
+
 	if not foundDest then return end
-	
+
 	return path
 end
 
@@ -123,7 +142,7 @@ function DV2P.pathfinder:GetMapEntClosest( pos, floatPos, class )
 	end
 end
 
-function DV2P.pathfinder:StartWarpToID( id, callback )
+function DV2P.pathfinder:StartWarpToID( id, straight, callback )
 	xpcall( function()
 		local sysData = GAMEMODE.SolarSystems[ id ]
 		
@@ -132,29 +151,27 @@ function DV2P.pathfinder:StartWarpToID( id, callback )
 			return
 		end
 		
-		self:StartWarpTo( sysData, callback )
+		self:StartWarpTo( sysData, straight, callback )
 	end, function( err ) print( err ) end )
 end
 
-function DV2P.pathfinder:StartWarpToName( name, callback )
+function DV2P.pathfinder:StartWarpToName( name, straight, callback )
 	xpcall( function()
-		local sysData = self:GetSystem( name )
+		local sysData = DV2P.GetSystem( name )
 		
 		if not sysData then
 			LocalPlayer():AddNote( "Could not find that system." )
 			return
 		end
 		
-		self:StartWarpTo( sysData, callback )
+		self:StartWarpTo( sysData, straight, callback )
 	end, function( err ) print( err ) end )
 end
 
-function DV2P.pathfinder:StartWarpTo( sysData, callback )
+function DV2P.pathfinder:StartWarpTo( sysData, straight, callback )
 	if not sysData then return end
 	
 	xpcall( function()
-		local lp = LocalPlayer()
-		
 		if lp.Docked then 
 			LocalPlayer():AddNote( "Can't pathfind while docked." )
 			return
@@ -179,6 +196,7 @@ function DV2P.pathfinder:StartWarpTo( sysData, callback )
 		self.dest = sysData
 		self.path = nil
 		self.fullpath = nil
+		self.straight = straight
 		self.callback = callback
 	end, function( err ) print( err ) end )
 end
@@ -192,7 +210,7 @@ end
 
 function DV2P.pathfinder:FinishWarp()
 	self.nextWarpPos = nil
-	self.nextWarpFloat = nil	
+	self.nextWarpFloat = nil
 end
 
 function DV2P.pathfinder:SetNextWarpDest( pos, floatPos, callback )
@@ -208,7 +226,6 @@ function DV2P.pathfinder:WarpToMapEnt( ent, callback )
 end
 
 function DV2P.pathfinder:CanWarpNormal()
-	local lp = LocalPlayer()
 	return not lp.WarpDest and
 		not lp.Docket and
 		not lp:IsPlayerDead() and
@@ -221,7 +238,6 @@ function DV2P.pathfinder:CanWarp()
 end
 
 function DV2P.pathfinder:Think()
-	local lp = LocalPlayer()
 	local plyPos = lp.PlayerPos
 
 	if self:CanWarpNormal() then
@@ -234,7 +250,7 @@ function DV2P.pathfinder:Think()
 			self.nextWarpTime = self.nextWarpTime - FrameTime()	
 		end
 	else
-		self.nextWarpTime = 5
+		self.nextWarpTime = self.warpDelay
 	end
 	
 	if self.inProgress then
@@ -243,7 +259,7 @@ function DV2P.pathfinder:Think()
 		
 		if self:CanWarpNormal() then
 			if not self.path then
-				self.path = self:CalculatePath( self.dest.Pos, plyPos, maxWarpDist )
+				self.path = self:CalculatePath( self.dest.Pos, plyPos, maxWarpDist, self.straight )
 				
 				self.fullpath = {}
 				for k, v in pairs( self.path ) do
@@ -264,12 +280,17 @@ function DV2P.pathfinder:Think()
 					self.nextNodeSet = true
 					local nextNode = table.remove( self.path, 1 )
 					
-					lp:AddNote( "Next System: " .. nextNode.Name )
-					
-					self:SetNextWarpDest( nextNode.Pos, nil, function()
-						lp:AddNote( "Arrived to system" );
-						self.nextNodeSet = false
-					end )
+					if type( nextNode ) == "Vector" then
+						self:SetNextWarpDest( nextNode, nil, function()
+							self.nextNodeSet = false
+						end )
+					else
+						lp:AddNote( "Next System: " .. nextNode.Name )
+						
+						self:SetNextWarpDest( nextNode.Pos, nil, function()
+							self.nextNodeSet = false
+						end )
+					end
 				else
 					self:FinishPath()
 						
@@ -290,8 +311,8 @@ function DV2P.pathfinder:Think()
 end
 
 function DV2P.pathfinder:PaintPanel( pnl, w, h )
-	local reg, id = LocalPlayer():GetRegion()
-	
+	local reg, id = lp:GetRegion()
+
 	local paintPath = false
 	
 	if IsValid( MAP_Frame ) then
@@ -314,25 +335,49 @@ function DV2P.pathfinder:PaintPanel( pnl, w, h )
 			if path then
 				local scale = MAIN_SOLARSYSTEM_RADIUS / 100
 				
-				local lp = LocalPlayer()
 				local plyPos = lp.PlayerPos
-				
-				local prev = nil
-				if self.start then
-					prev = self.start.SPos	
-				end
-				for k, v in pairs( path ) do
-					if not v then continue end
-					local pos = v.SPos
-					
-					if pos and prev then
-						surface.SetDrawColor( 255, 150, 0 )
-						surface.DrawLine( prev.x, prev.y, pos.x, pos.y )
+				surface.SetDrawColor( 255, 150, 50 )
+
+				if self.straight then
+					local startPos = lp.SPos
+					if self.dest then
+						if self.start then startPos = self.start.SPos end
+
+						local endPos = self.dest.SPos
+
+						if startPos and endPos then
+							surface.DrawLine( startPos.x, startPos.y, endPos.x, endPos.y )
+						end
 					end
-					
-					prev = pos
+				else
+					local prev = lp.SPos
+					if self.start then
+						prev = self.start.SPos
+					end
+
+					for k, v in pairs( path ) do
+						if not v then continue end
+						local pos = v.SPos
+						
+						if pos and prev then
+							surface.DrawLine( prev.x, prev.y, pos.x, pos.y )
+						end
+						
+						prev = pos
+					end
 				end
-				
+
+				local warpDest = lp.WarpSPos
+				if DV2P.IsWarping() and warpDest then
+					DrawTexturedRectRotated( warpDest.x, warpDest.y, 8 + math.cos( CurTime() * 5 ) * 2,
+						8 + math.cos( CurTime() * 5 ) * 2, Color( 255, 150, 50 ), MatTarget, CurTime() * -300 )
+				end
+
+				if self.dest then
+					local pos = self.dest.SPos
+					DrawTexturedRectRotated( pos.x, pos.y, 16 + math.cos( CurTime() * 5 ) * 4,
+						16 + math.cos( CurTime() * 5 ) * 4, Color( 100, 255, 100 ), MatTarget, CurTime() * -300 )
+				end
 			end
 		end
 	end
@@ -391,6 +436,11 @@ function OpenMap()
 		localDropdown:AddChoice( "BlackHole" )
 		DV2P.pathfinder.mapDerma.localDropdown = localDropdown
 		
+		local straightCheckbox = vgui.Create( "DCheckBoxLabel", window )
+		straightCheckbox:SetChecked( false )
+		straightCheckbox:SetText( "Warp in a straight line" )
+		straightCheckbox:SizeToContents()
+
 		local warpBtn = vgui.Create( "MBButton", window )
 		warpBtn:SetText( "Warp" )
 		DV2P.pathfinder.mapDerma.warpBtn = warpBtn
@@ -449,21 +499,28 @@ function OpenMap()
 			local class = localDropdown:GetText()
 			local num = tonumber( systemInput:GetText() )
 			local callback = function( plyPos, floatPos )
-				local ent = DV2P.pathfinder:GetMapEntClosest( plyPos, floatPos, class )
-				
-				if ent then
-					DV2P.pathfinder:WarpToMapEnt( ent, function()
-						LocalPlayer():AddNote( "Arrived to destination" );
-						surface.PlaySound( "ambient/levels/citadel/portal_open1_adpcm.wav" )
-					end )
+				if class ~= "" then
+					local ent = DV2P.pathfinder:GetMapEntClosest( plyPos, floatPos, class )
+					if ent then
+						DV2P.pathfinder:WarpToMapEnt( ent, function()
+							LocalPlayer():AddNote( "Arrived to destination" );
+							surface.PlaySound( "ambient/levels/citadel/portal_open1_adpcm.wav" )
+						end )
+					end
+				else
+					LocalPlayer():AddNote( "Arrived to destination" );
+					surface.PlaySound( "ambient/levels/citadel/portal_open1_adpcm.wav" )
 				end
 			end
 
+			local straight = straightCheckbox:GetChecked()
 			if num then
-				DV2P.pathfinder:StartWarpToID( num, callback )
+				DV2P.pathfinder:StartWarpToID( num, straight, callback )
 			else
-				DV2P.pathfinder:StartWarpToName( systemInput:GetText(), callback )
+				DV2P.pathfinder:StartWarpToName( systemInput:GetText(), straight, callback )
 			end
+
+			print( straightCheckbox:GetChecked() )
 			
 			surface.PlaySound( "buttons/button24.wav" )
 		end
@@ -476,7 +533,7 @@ function OpenMap()
 		
 		function window:PerformLayout( w, h )
 			
-			window:SetSize( 300, 170 )
+			window:SetSize( 300, 190 )
 			window:SetPos( map_w - w - 10, map_h - h - 10 )
 	
 			systemLabel:SetPos( 14, 20 )
@@ -486,12 +543,14 @@ function OpenMap()
 			
 			localDropdown:SetSize( w - 20, 20 )
 			localDropdown:SetPos( 10, 65 )
+
+			straightCheckbox:SetPos( 10, 90 )
 			
 			warpBtn:SetSize( w - 40, 25 )
-			warpBtn:SetPos( 20, 100 )
+			warpBtn:SetPos( 20, 120 )
 			
 			cancelBtn:SetSize( w - 40, 25 )
-			cancelBtn:SetPos( 20, 130 )
+			cancelBtn:SetPos( 20, 150 )
 		end
 		
 		function window:Paint( w, h )
