@@ -13,6 +13,14 @@ function DV2P.GetLocalSystemPos(pl)
 	return "In transit", 0
 end
 
+function DV2P.GetSystem( name )
+	for k, v in pairs( GAMEMODE.SolarSystems ) do
+		if v.Name:lower() == name:lower() then
+			return v
+		end
+	end
+end
+
 function DV2P.IsAt(Class)
 	local AtClass = DV2P.GetLocalSystemPos(lp)
 	return AtClass == Class 
@@ -59,6 +67,10 @@ function DV2P.IsMoving()
 	if lp.SimulateSpeed and lp.SimulateSpeed <= 0.1 then return false end
 	if not self.WarpDest then return false end
 	return true
+end
+
+function DV2P.IsWarping()
+	return lp.WarpDest ~= nil
 end
 
 function DV2P.UnloadToBank()
