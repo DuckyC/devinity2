@@ -68,6 +68,7 @@ end
 
 function DV2P.pathfinder:CalculatePath( dest, origin, range, straight )
 	local dest_dist = dest:Distance( origin )
+	if dest_dist <= MAIN_SOLARSYSTEM_RADIUS then return {} end
 	
 	local path = {}
 	local foundDest = false
