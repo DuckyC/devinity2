@@ -520,8 +520,6 @@ function OpenMap()
 			else
 				DV2P.pathfinder:StartWarpToName( systemInput:GetText(), straight, callback )
 			end
-
-			print( straightCheckbox:GetChecked() )
 			
 			surface.PlaySound( "buttons/button24.wav" )
 		end
