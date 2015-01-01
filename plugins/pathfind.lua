@@ -442,12 +442,24 @@ function OpenMap()
 		straightCheckbox:SetText( "Warp in a straight line" )
 		straightCheckbox:SizeToContents()
 
+		function ButtonPaint( pnl, w, h )
+			if (pnl.Hovered) then
+				DrawDV2Button( 0, 0, w, h, 8, MAIN_GREENCOLOR, MAIN_BLACKCOLOR )
+			else
+				DrawDV2Button( 0, 0, w, h, 8, MAIN_GUICOLOR, MAIN_BLACKCOLOR )
+			end
+
+			DrawText( pnl.Text, "DVTextSmall", w / 2, h / 2 , MAIN_TEXTCOLOR, TEXT_ALIGN_CENTER )
+		end
+
 		local warpBtn = vgui.Create( "MBButton", window )
 		warpBtn:SetText( "Warp" )
+		warpBtn.Paint = ButtonPaint
 		DV2P.pathfinder.mapDerma.warpBtn = warpBtn
 		
 		local cancelBtn = vgui.Create( "MBButton", window )
 		cancelBtn:SetText( "Cancel" )
+		cancelBtn.Paint = ButtonPaint
 		DV2P.pathfinder.mapDerma.cancelBtn = cancelBtn
 		
 		
@@ -532,28 +544,28 @@ function OpenMap()
 		
 		function window:PerformLayout( w, h )
 			
-			window:SetSize( 300, 190 )
+			window:SetSize( 300, 174 )
 			window:SetPos( map_w - w - 10, map_h - h - 10 )
 	
-			systemLabel:SetPos( 14, 20 )
+			systemLabel:SetPos( 14, 10 )
 	
 			systemInput:SetSize( w - 20, 20 )
-			systemInput:SetPos( 10, 40 )
+			systemInput:SetPos( 10, 30 )
 			
 			localDropdown:SetSize( w - 20, 20 )
-			localDropdown:SetPos( 10, 65 )
+			localDropdown:SetPos( 10, 55 )
 
-			straightCheckbox:SetPos( 10, 90 )
+			straightCheckbox:SetPos( 10, 80 )
 			
-			warpBtn:SetSize( w - 40, 25 )
-			warpBtn:SetPos( 20, 120 )
+			warpBtn:SetSize( w - 16, 25 )
+			warpBtn:SetPos( 8, 110 )
 			
-			cancelBtn:SetSize( w - 40, 25 )
-			cancelBtn:SetPos( 20, 150 )
+			cancelBtn:SetSize( w - 16, 25 )
+			cancelBtn:SetPos( 8, 140 )
 		end
 		
 		function window:Paint( w, h )
-			DrawDV2Box( 0, 0, w - 1, h - 1, w / 3, MAIN_BLACKCOLOR, MAIN_GUICOLOR, 8 )
+			DrawDV2Button( 0, 0, w - 1, h - 1, 12, MAIN_GUICOLOR, MAIN_BLACKCOLOR )
 		end
 		
 		DV2P.pathfinder.vguiInitialized = true
