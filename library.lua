@@ -71,3 +71,8 @@ function DV2P.GenerateAllMiningOres(systems)
 	end
 	return ores
 end
+
+//I know what you're thinking, but fuck you I don't care
+function DV2P.EnterGamemode()
+	RequestUpdate()
+end
