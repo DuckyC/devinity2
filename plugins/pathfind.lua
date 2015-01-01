@@ -226,6 +226,10 @@ function DV2P.pathfinder:WarpToMapEnt( ent, callback )
 	end
 end
 
+function DV2P.pathfinder:IsInProgress()
+	return self.inProgress
+end
+
 function DV2P.pathfinder:CanWarpNormal()
 	return not lp.WarpDest and
 		not lp.Docket and
@@ -262,13 +266,18 @@ function DV2P.pathfinder:Think()
 			if not self.path then
 				self.path = self:CalculatePath( self.dest.Pos, plyPos, maxWarpDist, self.straight )
 				
-				self.fullpath = {}
-				for k, v in pairs( self.path ) do
-					self.fullpath[ k ] = v
+				if self.path then
+					self.fullpath = {}
+					for k, v in pairs( self.path ) do
+						self.fullpath[ k ] = v
+					end
+					
+					local name, id = lp:GetRegion()
+					self.start = GAMEMODE.SolarSystems[ id ]
+				else
+					lp:AddNote( "Could not find path to specified destination!" );
+					self.inProgress = false
 				end
-				
-				local name, id = lp:GetRegion()
-				self.start = GAMEMODE.SolarSystems[ id ]
 			end
 			
 			if not self.path then
@@ -509,6 +518,11 @@ function OpenMap()
 		
 		
 		function warpBtn:DoClick()
+			if (DV2P.pathfinder:IsInProgress()) then
+				DV2P.pathfinder:FinishPath()
+				DV2P.pathfinder:FinishWarp()
+			end
+
 			local class = localDropdown:GetText()
 			local num = tonumber( systemInput:GetText() )
 			local callback = function( plyPos, floatPos )
