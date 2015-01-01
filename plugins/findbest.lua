@@ -9,7 +9,7 @@ concommand.Add("dv2_bestore", function()
 end)
 
 concommand.Add("dv2_oreinfo", function()
-	local Ores = DV2p.GenerateAllMiningOres(GAMEMODE.SolarSystems)
+	local Ores = DV2P.GenerateAllMiningOres(GAMEMODE.SolarSystems)
 	print("ID,Tech,Ore Name,Base Price,System Name")
 	for k,v in pairs(Ores) do
 		print(k..","..v.Tech..","..v.Name..","..v.Price..","..GAMEMODE.SolarSystems[k].Name)
