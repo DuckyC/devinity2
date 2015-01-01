@@ -1,16 +1,25 @@
 DV2P.Plugins = {}
 
-function DV2P.AddPlugin(plugin)
+function DV2P.AddPlugin( plugin )
+	if not plugin or not plugin.name then return end
+	plugin.description = plugin.description or "None"
 
+	DV2P.Plugins[ plugin.name ] = plugin
 end
 
+
+
 function DV2P.OpenPluginMenu()
-	if IsValid(DV2P.PluginMenu) then DV2P.PluginMenu:SetVisible(true) return end
+	if IsValid(DV2P.PluginMenu) then
+		DV2P.PluginMenu:Remove()
+		DV2P.PluginMenu = nil
+	end
+	
 	DV2P.PluginMenu = vgui.Create("MBFrame")
 	DV2P.PluginMenu:SetPos(21,30)
 	DV2P.PluginMenu:SetSize(360,400)
 	DV2P.PluginMenu:SetTitle("")
-	DV2P.PluginMenu:SetVisible(false)
+	DV2P.PluginMenu:SetVisible(true)
 	DV2P.PluginMenu:SetDeleteOnClose(false)
 	DV2P.PluginMenu.Paint = function(s,w,h) 
 		DrawRect(0,0,w,h,MAIN_BLACKCOLOR)
@@ -19,6 +28,9 @@ function DV2P.OpenPluginMenu()
 		
 		DrawText("Plugins","DVTextSmall",w/2,11,MAIN_WHITECOLOR,1)
 	end
+
+
+
 end
 
 local Icon = Material("devinity2/hud/hudicons/options.png")

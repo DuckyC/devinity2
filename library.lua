@@ -13,17 +13,32 @@ function DV2P.GetLocalSystemPos(pl)
 	return "In transit", 0
 end
 
+function DV2P.GetSystem( name )
+	for k, v in pairs( GAMEMODE.SolarSystems ) do
+		if v.Name:lower() == name:lower() then
+			return v
+		end
+	end
+end
+
 function DV2P.IsAt(Class)
 	local AtClass = DV2P.GetLocalSystemPos(lp)
 	return AtClass == Class 
 end
 
-function DV2P.GetNearest(Class)
+function DV2P.GetNearest( Class )
 	local objects = {}
-	for k,v in pairs(GAMEMODE.MapEnts) do if v.Class == Class then objects[#objects+1] = v end end
-	table.sort(objects, function(a,b) return DV2P.GetDistance(lp, a) < DV2P.GetDistance(lp, b) end)
-	if table.Count(objects) > 0 and objects[1] then
-		return objects[1]
+	local count = 0
+	for k,v in pairs( GAMEMODE.MapEnts ) do
+		if not Class || v.Class == Class then
+			objects[ #objects + 1 ] = v
+			count = count + 1
+		end
+	end
+	
+	table.sort( objects, function( a, b ) return DV2P.GetDistance( lp, a ) < DV2P.GetDistance( lp, b ) end )
+	if count > 0 and objects[ 1 ] then
+		return objects[ 1 ]
 	end
 end
 function DV2P.WarpToNearest(Class)
@@ -52,6 +67,10 @@ function DV2P.IsMoving()
 	if lp.SimulateSpeed and lp.SimulateSpeed <= 0.1 then return false end
 	if not self.WarpDest then return false end
 	return true
+end
+
+function DV2P.IsWarping()
+	return lp.WarpDest ~= nil
 end
 
 function DV2P.UnloadToBank()
