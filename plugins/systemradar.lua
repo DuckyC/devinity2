@@ -17,7 +17,10 @@ local function DrawRadarPlayer(faction, ply, y)
 	DrawText(faction, "DefaultSmall", 202-w2-5, y, col)
 
 	if input.IsMouseInBox(202-w2-5,y,w1+w2+5,h2) and (input.MousePress(MOUSE_LEFT,"OpenPlayerinfo_"..ply:GetName())) then
-		DV2P.ShowPlayerInfo(ply)
+		
+		if not DV2P.HoversAnyPanel() then
+			DV2P.ShowPlayerInfo(ply)
+		end
 	end
 end
 hook.Add("HUDPaint", "Devinty2SystemRadar", function()

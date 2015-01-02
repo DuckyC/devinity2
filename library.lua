@@ -124,3 +124,21 @@ function DV2P.GetNearestNPC(maxdistance)
 	local Pirate = NPCs[1] 
 	if Pirate and (DV2P.GetDistance(lp, Pirate) <= (maxdistance or MAIN_SOLARSYSTEM_RADIUS)) then return Pirate end
 end
+
+local worldPnl = vgui.GetWorldPanel()
+function DV2P.HoversAnyPanel()
+	local children = worldPnl:GetChildren()
+	
+	for k, v in pairs( children ) do
+		local x, y = v:GetPos()
+		local w, h = v:GetSize()
+
+		if v:IsVisible() then
+			if input.IsMouseInBox( x, y, w, h ) then
+				return true
+			end
+		end
+	end
+
+	return false
+end
