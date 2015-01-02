@@ -1,6 +1,7 @@
 local Close = surface.GetTextureID("gearfox/vgui/close")
 
-DV2P.Plugins = {}
+DV2P.Plugins = DV2P.Plugins or {}
+DV2P.PluginFiles = DV2P.PluginFiles or {}
 DV2P.PluginMenu = DV2P.PluginMenu or {}
 DV2P.PluginMenu.Selected = DV2P.PluginMenu.Selected or nil
 
@@ -39,20 +40,25 @@ end )
 function DV2P.LoadPlugins( folder )
 	local files, dirs = file.Find( folder.."/*.lua", "GAME" )
 	for k, v in pairs( files ) do
-		PLUGIN = {}
+
+		PLUGIN = DV2P.GetPlugin( DV2P.PluginFiles[ v ] ) or {}
 		DV2P.Include( folder.."/", v )
 		if PLUGIN then
-			DV2P.AddPlugin( PLUGIN )
+			DV2P.AddPlugin( PLUGIN, v )
 		end
 	end
 end
 
-function DV2P.AddPlugin( plugin )
+function DV2P.AddPlugin( plugin, file )
 	if not plugin or not plugin.Name then return end
 
 	plugin = setmetatable( plugin, pluginMeta )
 
 	DV2P.Plugins[ plugin.Name ] = plugin
+
+	if file ~= nil then
+		DV2P.PluginFiles[ file ] = plugin.Name
+	end
 end
 
 function DV2P.GetPlugin( name )
@@ -73,7 +79,11 @@ function DV2P.ResizePluginPanel( w, h, dur )
 
 
 	local window = DV2P.PluginMenu.window
-	window:SizeTo( w, h, dur, 0 )
+	if dur == 0 then
+		window:SetSize( w, h )
+	else
+		window:SizeTo( w, h, dur, 0 )
+	end
 end
 
 function DV2P.SetupPluginPanel( name )
@@ -94,7 +104,7 @@ function DV2P.SetupPluginPanel( name )
 	panel:SetVisible( false )
 end
 
-function DV2P.OpenPluginPanel( name )
+function DV2P.OpenPluginPanel( name, resizeInstant )
 	local oldSel = DV2P.PluginMenu.Selected
 	if oldSel ~= nil then
 		local oldPanel = DV2P.PluginMenu[ "plugin_" .. oldSel .. "_panel" ]
@@ -117,7 +127,11 @@ function DV2P.OpenPluginPanel( name )
 			DV2P.PluginMenu.pluginDesc:SetText( plugin.Description )
 
 			DV2P.PluginMenu.window:InvalidateLayout( true )
-			DV2P.ResizePluginPanel( plugin._pnlW, plugin._pnlH, plugin._pnlDur )
+			if resizeInstant then
+				DV2P.ResizePluginPanel( plugin._pnlW, plugin._pnlH, 0 )
+			else
+				DV2P.ResizePluginPanel( plugin._pnlW, plugin._pnlH, plugin._pnlDur )
+			end
 		end
 	end
 end
@@ -271,7 +285,10 @@ function DV2P.OpenPluginMenu()
 	end
 
 	if DV2P.PluginMenu.Selected then
-		DV2P.OpenPluginPanel( DV2P.PluginMenu.Selected )
+		local plugin = DV2P.GetPlugin( DV2P.PluginMenu.Selected )
+		if plugin then
+			DV2P.OpenPluginPanel( DV2P.PluginMenu.Selected, true )
+		end
 	end
 end
 
