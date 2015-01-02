@@ -2,6 +2,7 @@
 DV2P.OFF = DV2P.OFF or {
 	functions = {}
 }
+DV2P.Overrides = DV2P.Overrides or {}
 
 function DV2P.OFF.RunFunction( name, ... )
 	local functions = DV2P.OFF.functions[ name ]
