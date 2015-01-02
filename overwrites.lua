@@ -21,6 +21,12 @@ function DV2P.OFF.AddFunction( funcName, id, func )
 	DV2P.OFF.functions[ funcName ][ id ] = func
 end
 
+function DV2P.OFF.RemoveFunction( funcName, id  )
+	if not DV2P.OFF.functions[ funcName ] then return end
+	
+	DV2P.OFF.functions[ funcName ][ id ] = nil
+end
+
 DV2P.OFF.AddFunction( "ReloadBankHUD_MenuAddOption", "WithdrawAllType", function( item, menu ) 
 	menu:AddOption( "Withdraw All Type", function()
 		for k2,v2 in pairs(LocalPlayer():GetBank()) do
