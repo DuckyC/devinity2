@@ -1,3 +1,5 @@
+PLUGIN.Name = "Small Things"
+
 local ShowEffects = CreateClientConVar( "dv2_show_effects", "1" )
 local OrgCreateEffect = CreateEffect
 cvars.AddChangeCallback( "dv2_show_effects", function()

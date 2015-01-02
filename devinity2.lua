@@ -39,5 +39,5 @@ DV2P.Include(PATH, "library.lua")
 DV2P.Include(PATH, "plugins.lua")
 DV2P.Include(PATH, "overwrites.lua")
 DV2P.IncludeFolder(PATH.."/overwrites/")
-DV2P.IncludeFolder(PATH.."/plugins/")
+DV2P.LoadPlugins( PATH.."/plugins/" )
 

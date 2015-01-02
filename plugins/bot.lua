@@ -1,3 +1,5 @@
+PLUGIN.Name = "Bot"
+
 //function player:SetWarpDestination(vec,fpos)
 
 local actions = {"Warping to Station", "Warping to Asteroid", "Selling", "Mining"}

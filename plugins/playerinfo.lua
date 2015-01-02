@@ -1,3 +1,5 @@
+PLUGIN.Name = "Player Info"
+
 local Close = surface.GetTextureID("gearfox/vgui/close")
 local Zero = Vector(0,0,0)
 function DV2P.ShowPlayerInfo(pl)

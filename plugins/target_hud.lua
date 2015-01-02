@@ -1,3 +1,4 @@
+PLUGIN.Name = "Target HUD"
 
 local ListX = ScrW()-330
 local ListY = 200

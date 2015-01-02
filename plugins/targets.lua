@@ -1,3 +1,5 @@
+PLUGIN.Name = "Targets"
+
 hook.Add( "HUDPaint", "dv2_target_show", function()
 	local lp = LocalPlayer()
 	local reg, sid = lp:GetRegion()

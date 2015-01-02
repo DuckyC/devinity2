@@ -1,3 +1,5 @@
+PLUGIN.Name = "System Radar"
+
 local UnknownFaction = Color(150,150,150,255)
 local OwnFaction = Color(0, 200, 0)
 local EnemyFaction = Color(255,0,0)

@@ -1,3 +1,5 @@
+PLUGIN.Name = "Item Generator"
+
 local count = table.Count(GAMEMODE.SolarSystems)
 local n = 10 //because metamist logic
 local max = (n*(2*count-n+1))/2

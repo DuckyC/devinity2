@@ -1,3 +1,39 @@
+PLUGIN.Name = "Pathfinder"
+PLUGIN.Description = "Finds paths and navigates to systems or positions on the map."
+
+function PLUGIN:PanelSetup( container )
+
+	local pnl = vgui.Create( "DPanel", container )
+	pnl.Paint = function( pnl, w, h )
+		DrawDV2Button( 0, 0, w, h, 8, MAIN_GREENCOLOR, MAIN_BLACKCOLOR )
+	end
+
+	self.derma.pnl = pnl
+
+	local label = vgui.Create( "DLabel", pnl )
+	label:SetText( "hi" )
+	label:SetFont( "DVText" )
+
+	self.derma.label = label
+
+	self:SetPanelSize( 400, 400 )
+	label.Think = function()
+		if input.IsMouseInBox( 35, 5, 16, 16 ) then
+			self:SetPanelSize( 100, 100 )
+		end
+	end
+end
+
+function PLUGIN:PanelPerformLayout( container, w, h )
+	local pnl = self.derma.pnl
+
+	pnl:SetPos( 0, 0 )
+	pnl:SetSize( w, h )
+
+	local label = self.derma.label
+	label:SetPos( 10, 10 )
+end
+
 local Zero = Vector( 0, 0, 0 )
 local lp = LocalPlayer()
 local MatTarget = surface.GetTextureID("devinity2/hud/target_white")
@@ -420,13 +456,13 @@ function DV2P.pathfinder:PaintPanel( pnl, w, h )
 	end
 end
 
-hook.Add( "Think", "DV2P_Pathfinder_Think", function()
+function PLUGIN:Think()
 	if DV2P.pathfinder then
 		xpcall( function()
 			DV2P.pathfinder:Think()
 		end, function( err ) print( err ) end )
 	end
-end )
+end
 
 DV2P.OFF.AddFunction( "Post_MAP_Frame_Paint", "MapPathfindPaint", function( pnl, w, h )
 	xpcall( function()

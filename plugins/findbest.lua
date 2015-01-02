@@ -1,3 +1,5 @@
+PLUGIN.Name = "Find Best"
+
 concommand.Add("dv2_bestore", function()
 	local ores = {}
 	for ID, System in pairs(GAMEMODE.SolarSystems) do

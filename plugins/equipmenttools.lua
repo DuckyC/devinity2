@@ -1,3 +1,5 @@
+PLUGIN.Name = "Equipment Tools"
+
 local Outer = Color(24,40,54,255)
 local Inner = Color(7,15,22,255)
 

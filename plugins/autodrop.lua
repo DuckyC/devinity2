@@ -1,3 +1,5 @@
+PLUGIN.Name = "Auto Drop"
+
 local AUTODROP = -1
 concommand.Add("dv2_autodrop", function(_,_,_,str)
 	AUTODROP = tonumber(str or -1) or -1
