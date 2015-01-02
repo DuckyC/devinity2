@@ -103,8 +103,9 @@ end
 
 function DV2P.pathfinder:CalculatePath( dest, origin, range, straight )
 	local dest_dist = dest:Distance( origin )
-	if dest_dist <= MAIN_SOLARSYSTEM_RADIUS then return {} end
+	if dest_dist <= MAIN_SOLARSYSTEM_RADIUS then return {}, 0 end
 	
+	local totalDist = 0
 	local path = {}
 	local foundDest = false
 	
@@ -122,13 +123,15 @@ function DV2P.pathfinder:CalculatePath( dest, origin, range, straight )
 			else
 				pos = prev + dir * ( range * 0.99 )
 			end
-
-			path[ #path + 1 ] = pos
 			
 			if foundDest then break end
 
+			path[ #path + 1 ] = pos
+
 			prev = pos
 		end
+
+		totalDist = dest_dist
 	else
 		local maxIterations = #GAMEMODE.SolarSystems
 		local iterations = 0
@@ -146,6 +149,8 @@ function DV2P.pathfinder:CalculatePath( dest, origin, range, straight )
 			
 			if not next then return end
 			
+			totalDist = totalDist + curr:Distance( next.Pos )
+
 			path[ #path + 1 ] = next
 			curr = next.Pos
 		end
@@ -154,7 +159,7 @@ function DV2P.pathfinder:CalculatePath( dest, origin, range, straight )
 
 	if not foundDest then return end
 
-	return path
+	return path, totalDist
 end
 
 function DV2P.pathfinder:GetMapEntClosest( pos, floatPos, class )
@@ -230,6 +235,7 @@ function DV2P.pathfinder:StartWarpTo( sysData, straight, callback )
 		
 		self.inProgress = true
 		self.dest = sysData
+		self.pathID = 1
 		self.path = nil
 		self.fullpath = nil
 		self.straight = straight
@@ -238,12 +244,17 @@ function DV2P.pathfinder:StartWarpTo( sysData, straight, callback )
 end
 
 function DV2P.pathfinder:StartWarpPath( path, callback )
+	if not path or #path == 0 then return end
+
 	self.inProgress = true
 	self.start = nil
 	self.dest = nil
-	self.path = path
 	self.fullpath = nil
 	self.callback = callback
+	self.pathID = 1
+
+	self.path = {}
+	for k, v in pairs( path ) do self.path[ k ] = path[ k ] end
 end
 
 function DV2P.pathfinder:AddToCurrentPath( ... )
@@ -268,6 +279,8 @@ function DV2P.pathfinder:FinishPath()
 	self.dest = nil
 	self.path = nil
 	self.fullpath = nil
+	self.pathID = 1
+	self.callback = nil
 end
 
 function DV2P.pathfinder:FinishWarp()
@@ -349,27 +362,28 @@ function DV2P.pathfinder:Think()
 			end
 			
 			if not self.nextNodeSet then
-				if #self.path > 0 then
+				if self.pathID <= #self.path then
 					self.nextNodeSet = true
-					local nextNode = table.remove( self.path, 1 )
+					local nextNode = self.path[ self.pathID ]
+					self.pathID = self.pathID + 1
+
+					function callback()
+						self.nextNodeSet = false
+					end
 					
 					if type( nextNode ) == "Vector" then
-						self:SetNextWarpDest( nextNode, nil, function()
-							self.nextNodeSet = false
-						end )
+						self:SetNextWarpDest( nextNode, nil, callback )
 					else
 						lp:AddNote( "Next System: " .. nextNode.Name )
 						
-						self:SetNextWarpDest( nextNode.Pos, nil, function()
-							self.nextNodeSet = false
-						end )
+						self:SetNextWarpDest( nextNode.Pos, nil, callback )
 					end
 				else
-					self:FinishPath()
-						
 					if self.callback then
 						self.callback( plyPos, lp.FloatPos )
 					end
+
+					self:FinishPath()
 				end
 			end
 		end
@@ -385,23 +399,8 @@ end
 
 function DV2P.pathfinder:PaintPanel( pnl, w, h )
 	local reg, id = lp:GetRegion()
-
-	local paintPath = false
 	
-	if IsValid( MAP_Frame ) then
-		local children = MAP_Frame:GetChildren()
-		
-		for k, v in pairs( children ) do
-			if IsValid( v ) then
-				if v.Text == "Enter Local Map" then
-					paintPath = true
-					break
-				end
-			end
-		end
-	end
-	
-	if paintPath then
+	if not DV2P.IsMapScreenLocal() then
 		if self.inProgress then
 			local path = self.fullpath
 			
@@ -578,28 +577,42 @@ DV2P.OFF.AddFunction( "Post_OpenMap", "MapPathfindPanel", function()
 				DV2P.pathfinder:FinishWarp()
 			end
 
+			local system = systemInput:GetText()
 			local class = localDropdown:GetText()
-			local num = tonumber( systemInput:GetText() )
-			local callback = function( plyPos, floatPos )
+
+			if system == "" then
 				if class ~= "" then
-					local ent = DV2P.pathfinder:GetMapEntClosest( plyPos, floatPos, class )
+					local ent = DV2P.pathfinder:GetMapEntClosest( lp.PlayerPos, lp.FloatPos, class )
 					if ent then
 						DV2P.pathfinder:WarpToMapEnt( ent, function()
 							LocalPlayer():AddNote( "Arrived to destination" );
 							surface.PlaySound( "ambient/levels/citadel/portal_open1_adpcm.wav" )
-						end )
+						end ) 
 					end
-				else
-					LocalPlayer():AddNote( "Arrived to destination" );
-					surface.PlaySound( "ambient/levels/citadel/portal_open1_adpcm.wav" )
 				end
-			end
-
-			local straight = straightCheckbox:GetChecked()
-			if num then
-				DV2P.pathfinder:StartWarpToID( num, straight, callback )
 			else
-				DV2P.pathfinder:StartWarpToName( systemInput:GetText(), straight, callback )
+				local num = tonumber( systemInput:GetText() )
+				local callback = function( plyPos, floatPos )
+					if class ~= "" then
+						local ent = DV2P.pathfinder:GetMapEntClosest( plyPos, floatPos, class )
+						if ent then
+							DV2P.pathfinder:WarpToMapEnt( ent, function()
+								LocalPlayer():AddNote( "Arrived to destination" );
+								surface.PlaySound( "ambient/levels/citadel/portal_open1_adpcm.wav" )
+							end )
+						end
+					else
+						LocalPlayer():AddNote( "Arrived to destination" );
+						surface.PlaySound( "ambient/levels/citadel/portal_open1_adpcm.wav" )
+					end
+				end
+
+				local straight = straightCheckbox:GetChecked()
+				if num then
+					DV2P.pathfinder:StartWarpToID( num, straight, callback )
+				else
+					DV2P.pathfinder:StartWarpToName( systemInput:GetText(), straight, callback )
+				end
 			end
 			
 			surface.PlaySound( "buttons/button24.wav" )

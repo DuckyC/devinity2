@@ -125,6 +125,25 @@ function DV2P.GetNearestNPC(maxdistance)
 	if Pirate and (DV2P.GetDistance(lp, Pirate) <= (maxdistance or MAIN_SOLARSYSTEM_RADIUS)) then return Pirate end
 end
 
+function DV2P.IsMapScreenLocal()
+	local isNotLocal = false
+	
+	if IsValid( MAP_Frame ) then
+		local children = MAP_Frame:GetChildren()
+		
+		for k, v in pairs( children ) do
+			if IsValid( v ) then
+				if v.Text == "Enter Local Map" then
+					isNotLocal = true
+					break
+				end
+			end
+		end
+	end
+	
+	return not isNotLocal
+end
+
 local worldPnl = vgui.GetWorldPanel()
 function DV2P.HoversAnyPanel()
 	local children = worldPnl:GetChildren()
