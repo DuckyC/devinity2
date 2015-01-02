@@ -4,15 +4,16 @@ local count = table.Count(GAMEMODE.SolarSystems)
 local n = 10 //because metamist logic
 local max = (n*(2*count-n+1))/2
 
-local Ore1 = {
-	Tech = 1000,
-	ID = 1,
-	Material = true,
-}
-local Ore2 = table.Copy(Ore1)
 
 concommand.Remove("dv2_generate_recipe")
 concommand.Add("dv2_generate_recipe", function() 
+	local Ore1 = {
+		Tech = 1000,
+		ID = 1,
+		Material = true,
+	}
+	local Ore2 = table.Copy(Ore1)
+	
 	local weapon = {}
 	print("generating recipies: ", max-55)
 	for i=55, max do
