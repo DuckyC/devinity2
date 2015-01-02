@@ -293,7 +293,6 @@ function DV2P.pathfinder:Think()
 				
 				if self.path then
 					local name, id = lp:GetRegion()
-					print( lp:GetRegion() )
 					self.start = GAMEMODE.SolarSystems[ id ]
 				else
 					lp:AddNote( "Could not find path to specified destination!" );

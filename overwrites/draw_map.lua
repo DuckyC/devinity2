@@ -8,7 +8,6 @@ function OpenMap()
 	if IsValid( MAP_Frame ) then
 		DV2P.Overrides.MAP_Frame_Paint = DV2P.Overrides.MAP_Frame_Paint or MAP_Frame.Paint
 
-		print( "override" )
 		function MAP_Frame:Paint( w, h )
 			DV2P.OFF.RunFunction( "Pre_MAP_Frame_Paint", self, w, h )
 			DV2P.Overrides.MAP_Frame_Paint( self, w, h )
