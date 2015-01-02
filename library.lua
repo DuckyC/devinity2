@@ -103,7 +103,7 @@ end
 
 function DV2P.ClearTargets()
 	for i=1, lp:GetShipData().MaxTargets do 
-		lp:ClearTarget(i)
+		lp:RequestTarget( 0, i )
 	end
 end
 
