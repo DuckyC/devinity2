@@ -10,7 +10,6 @@ DV2P.pathfinder = DV2P.pathfinder or {
 	warpDelay = 2
 }
 
-DV2P.pathfinder.overrides.OpenMap = DV2P.pathfinder.overrides.OpenMap or OpenMap
 DV2P.pathfinder.overrides.input_KeyPress = DV2P.pathfinder.overrides.input_KeyPress or input.KeyPress
 
 local plyMeta = FindMetaTable( "Player" )
@@ -430,20 +429,14 @@ hook.Add( "Think", "DV2P_Pathfinder_Think", function()
 	end
 end )
 
-
-function OpenMap()
-	DV2P.pathfinder.overrides.OpenMap()
+DV2P.OFF.AddFunction( "Post_MAP_Frame_Paint", "MapPathfindPaint", function( pnl, w, h )
 	xpcall( function()
-		DV2P.pathfinder.overrides.MAP_Frame_Paint = DV2P.pathfinder.overrides.MAP_Frame_Paint or MAP_Frame.Paint
-	
-		function MAP_Frame:Paint( w, h )
-			DV2P.pathfinder.overrides.MAP_Frame_Paint( self, w, h )
-			
-			xpcall( function()
-				DV2P.pathfinder:PaintPanel( self, w, h )
-			end, function( err ) print( err ) end )
-		end
-		
+		DV2P.pathfinder:PaintPanel( pnl, w, h )
+	end, function( err ) print( err ) end )
+end )
+
+DV2P.OFF.AddFunction( "Post_OpenMap", "MapPathfindPanel", function()
+	xpcall( function()
 		if DV2P.pathfinder.vguiInitialized then
 			for k, v in pairs( DV2P.pathfinder.mapDerma ) do
 				v:Remove()
@@ -544,8 +537,6 @@ function OpenMap()
 			self.Menu:SetMaxHeight( (ScrH() - y) - 10 )
 		end
 		
-		
-		
 		function warpBtn:DoClick()
 			if (DV2P.pathfinder:IsInProgress()) then
 				DV2P.pathfinder:FinishPath()
@@ -613,4 +604,4 @@ function OpenMap()
 		
 		DV2P.pathfinder.vguiInitialized = true
 	end, function( err ) print( err ) end )
-end
+end )
