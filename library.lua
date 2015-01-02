@@ -4,6 +4,11 @@ local MapEntsLookupTable = {["AsteroidField"] = 1,["Planet"] = 1,["Station"] = 1
 function DV2P.GetDistance(ent1, ent2)
 	return ( ( (ent1.PlayerPos and ent1.PlayerPos or ent1.Pos) - (ent2.PlayerPos and ent2.PlayerPos or ent2.Pos) ) + ( ent1.FloatPos - ent2.FloatPos ) ):Length()
 end
+
+function DV2P.DistanceSort(a,b)
+	return DV2P.GetDistance( lp, a ) < DV2P.GetDistance( lp, b )
+end
+
 function DV2P.GetLocalSystemPos(pl)
 	for k,v in pairs(GAMEMODE.MapEnts) do
 		if MapEntsLookupTable[v.Class] and DV2P.GetDistance(pl, v) < 5000 then
@@ -36,7 +41,7 @@ function DV2P.GetNearest( Class )
 		end
 	end
 	
-	table.sort( objects, function( a, b ) return DV2P.GetDistance( lp, a ) < DV2P.GetDistance( lp, b ) end )
+	table.sort( objects, DV2P.DistanceSort )
 	if count > 0 and objects[ 1 ] then
 		return objects[ 1 ]
 	end
@@ -64,7 +69,7 @@ function DV2P.CanDock(dock)
 end
 
 function DV2P.IsMoving()
-	if lp.SimulateSpeed and lp.SimulateSpeed <= 0.1 then return false end
+	if lp.SimulateSpeed and lp.SimulateSpeed <= 0 then return false end
 	if not self.WarpDest then return false end
 	return true
 end
@@ -94,4 +99,28 @@ end
 //I know what you're thinking, but fuck you I don't care
 function DV2P.EnterGamemode()
 	RequestUpdate()
+end
+
+function DV2P.ClearTargets()
+	for i=1, lp:GetShipData().MaxTargets do 
+		lp:ClearTarget(i)
+	end
+end
+
+function DV2P.FireAll(Class, bool)
+	if bool == nil then bool = true end
+	for k, v in pairs( lp.Equipment ) do 
+		if v.Class == Class then ToggleFire( k, bool ) end
+	end
+end
+
+function DV2P.GetNearestNPC(maxdistance)
+	local NPCs = {}
+	for k,v in pairs(DV2_ENTS) do
+		if v.Class == "npc_pirate_hawk" then NPCs[#NPCs+1] = v end
+	end
+
+	table.sort( NPCs, DV2P.DistanceSort )
+	local Pirate = NPCs[1] 
+	if Pirate and (DV2P.GetDistance(lp, Pirate) <= (maxdistance or MAIN_SOLARSYSTEM_RADIUS)) then return Pirate end
 end

@@ -1,71 +1,22 @@
-local ceil 			= math.ceil
-local randomseed 	= math.randomseed
-local random 		= math.random
-local RT			= table.Random
-
-local NamePrefix = {
-	{Name="Common",Chance=100},
-	{Name="Uncommon",Chance=30},
-	{Name="Rare",Chance=10},
-	{Name="Legendary",Chance=1},
-}
-
-
-local function GenerateItemO(Seed,Tech,Class,ShipType)
-	math.randomseed(Seed)
-
-	local Rarity = 1
-	local Splits = 100/#NamePrefix
-
-	for i = 0,#NamePrefix-1 do	if (random(1,100) <= NamePrefix[#NamePrefix-i].Chance) then Rarity = #NamePrefix-i break end end
-
-	local Dat = {
-		ID = Seed,
-		Tech = Tech,
-		Rarity = Rarity,
-		Class = Class,
-		Type = ShipType,
-		Name = NamePrefix[Rarity].Name.." "..ShipType.. " NAME "..Class,
-		Price = random(1,10)*Tech*(Rarity*3-2),
-	}
-
-	local Ab = GetWeaponClassData(Class)
-
-	if (Ab) then 
-		Dat.Equipable 		= true 
-		Dat.CD 		  		= Ab.CD/(0.7+Rarity*0.3)
-		Dat.Range 		  	= Ab.Range or 10000
-		Dat.Dmg				= random(Ab.Dmg*Dat.Tech,20+Ab.Dmg*Dat.Tech)*Rarity*GetShipTypeDamage(ShipType)
-	end
-
-	math.randomseed(os.time())
-
-	return Dat
-end
-
-
-local function CraftItemO(ore1, ore2)
-	local Tech, Seed = ore1.Tech+ore2.Tech, ore1.ID+ore2.ID
-	Tech = ceil(Tech/2)
-	randomseed(Seed)
-	return GenerateItemO(random(Seed),Tech,RT(GetWeaponClasses()),RT(GetShipTypes()),false)
-end
-
+local count = table.Count(GAMEMODE.SolarSystems)
+local n = 10 //because metamist logic
+local max = (n*(2*count-n+1))/2
 
 local Ore1 = {
 	Tech = 1000,
 	ID = 1,
+	Material = true,
 }
 local Ore2 = table.Copy(Ore1)
 
 concommand.Remove("dv2_generate_recipe")
 concommand.Add("dv2_generate_recipe", function() 
 	local weapon = {}
-
-	for i=55, 1955 do
+	print("generating recipies: ", max-55)
+	for i=55, max do
 		Ore2.ID = Ore2.ID + 1		
-		local wep = CraftItemO(Ore1, Ore2)
-		if not wep then continue end
+		local wep = CraftItem({Ore1, Ore2})
+		if not wep or wep.Rarity.Name == "Common" or wep.Rarity.Name == "Uncommon" or wep.Class == "Laser" then continue end
 
 		weapon[wep.Type] = weapon[wep.Type] or {}
 		weapon[wep.Type][wep.Class] = weapon[wep.Type][wep.Class] or {}
@@ -84,7 +35,7 @@ concommand.Add("dv2_generate_recipe", function()
 		for WeaponType,Rarities in pairs(WeaponTypes) do
 			addToContent("    ", WeaponType)
 			for Rarity,Weapons in pairs(Rarities) do
-				addToContent("        ", NamePrefix[Rarity].Name)
+				addToContent("        ", Rarity.Name)
 				table.sort(Weapons, CompareDPS)
 				for _,Weapon in pairs(Weapons) do
 					addToContent("                ", "CraftID: "..Weapon.CraftID.."    ".."DMG: "..Weapon.Damage.."    ".."DPS: "..Weapon.DPS)

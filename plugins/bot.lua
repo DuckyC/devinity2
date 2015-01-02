@@ -9,8 +9,14 @@ local action = 0
 local function Mine()
 	local Asteroid = DV2P.GetNearest("Asteroid")
 	if not Asteroid then return false end
-	lp:RequestTarget( Asteroid.ID )
-	for k, v in pairs( lp.Equipment ) do ToggleFire( k, true ) end
+	//DV2P.ClearTargets()
+	lp:RequestTarget( Asteroid.ID, 1, false, false)
+	DV2P.FireAll("Mining Laser")
+
+	local Pirate = DV2P.GetNearestNPC(5000)
+	if not Pirate then DV2P.FireAll("Pulse Cannon", false) return end
+	lp:RequestTarget(Pirate:GetIndex(),2,false,true)
+	DV2P.FireAll("Pulse Cannon")
 end
 
 local function SA(na)
@@ -29,21 +35,20 @@ hook.Add("HUDPaint", "action", function()
 	DrawText(actions[action] or "no action", "DefaultSmall", w/2, h/2, MAIN_TEXTCOLOR)
 end)
 
-local Run = RunConsoleCommand
 local lastrun = 0
 hook.Add("Tick", "dv2_automine_tick", function() 
 	if activeConVar:GetInt() == 0 then return end
 	if CurTime() < lastrun + 1 then return end
-	//Warping
-	if not DV2P.IsMoving() and DV2P.IsInventoryFull() and (not DV2P.IsAt("Station")) then DV2P.WarpToNearest("Station") SA(1) end
-	if not DV2P.IsMoving() and not DV2P.IsInventoryFull() and (not DV2P.IsAt("AsteroidField")) then DV2P.WarpToNearest("AsteroidField") Run("-forward") SA(2) end
-
-	//Actions
-	if DV2P.IsInventoryFull() and DV2P.IsAt("Station") and not DV2P.CanDock(true) then Run("+forward") end
-	if not DV2P.IsMoving() and DV2P.IsInventoryFull() and DV2P.IsAt("Station") then DV2P.SellEverything() SA(3) end
-	if not DV2P.IsMoving() and not DV2P.IsInventoryFull() and DV2P.IsAt("AsteroidField") then Mine() SA(4) end
-
-	if lp:GetDocked() and not DV2P.IsInventoryFull() then lp:RequestUndock() StationMenu:SetVisible( false ) end
-
 	lastrun = CurTime()
+
+	if not DV2P.IsMoving() then
+		if DV2P.IsInventoryFull() then
+			if DV2P.IsAt("Station") then DV2P.SellEverything() SA(3) end
+			if (not DV2P.IsAt("Station")) then DV2P.WarpToNearest("Station") SA(1) end
+		else
+			if DV2P.IsAt("AsteroidField") then Mine() SA(4) end
+			if (not DV2P.IsAt("AsteroidField")) then DV2P.WarpToNearest("AsteroidField") SA(2) end
+		end
+	end
+	if not DV2P.IsInventoryFull() and lp:GetDocked() then lp:RequestUndock() StationMenu:SetVisible( false ) end
 end)
