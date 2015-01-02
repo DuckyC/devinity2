@@ -34,15 +34,16 @@ end
 DV2P.OFF.AddFunction( "ReloadBankHUD_MenuAddOption", "WithdrawAllType", function( item, menu ) 
 	menu:AddOption( "Withdraw All Type", function()
 		for k2,v2 in pairs(LocalPlayer():GetBank()) do
-			if v.Data.ID == v2.Data.ID then  RequestRemoveBank(k2) end
+			if item.Data.ID == v2.Data.ID then  RequestRemoveBank(k2) end
 		end
 	end ):SetColor(MAIN_TEXTCOLOR)
 end )
 
 DV2P.OFF.AddFunction( "ReloadBankInventoryHUD_MenuAddOption", "DepositAllType", function( item, menu ) 
 	menu:AddOption( "Deposit All Type", function()
+		print( item )
 		for k2,v2 in pairs(LocalPlayer():GetInventory()) do
-			if v.Data.ID == v2.Data.ID then  RequestAddBank(k2) end
+			if item.Data.ID == v2.Data.ID then  RequestAddBank(k2) end
 		end
 	end ):SetColor(MAIN_TEXTCOLOR)
 end )
