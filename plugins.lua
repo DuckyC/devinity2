@@ -53,8 +53,6 @@ function DV2P.AddPlugin( plugin )
 	plugin = setmetatable( plugin, pluginMeta )
 
 	DV2P.Plugins[ plugin.Name ] = plugin
-
-	DV2P.OpenPluginMenu()
 end
 
 function DV2P.GetPlugin( name )
