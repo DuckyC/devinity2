@@ -4,12 +4,16 @@ local Zero		= Vector(0,0,0)
 local Comma 	= string.Comma
 
 function ReloadBankHUD()
+	DV2P.OFF.RunFunction( "Pre_ReloadBankHUD" )
+
 	if (!StationMenu or !StationMenu.ListBank) then return end
 	
 	StationMenu.ListBank:Clear()
 	
 	for k,v in pairs(LocalPlayer():GetBank()) do
 		if (v.Data) then
+			DV2P.OFF.RunFunction( "Pre_ReloadBankHUD_Populate", v )
+			
 			local a = StationMenu.ListBank:Add("DButton")
 			a:SetSize(64,64)
 			a:SetText("")
@@ -21,27 +25,31 @@ function ReloadBankHUD()
 				local menu = DermaMenu() 
 				menu.Paint = function(s,w,h) DrawRect(0,0,w,h,MAIN_GUICOLOR) end
 				menu:AddOption( "Withdraw", function() RequestRemoveBank(k) end ):SetColor(MAIN_TEXTCOLOR)
-				menu:AddOption( "Withdraw All Type", function()
-					for k2,v2 in pairs(LocalPlayer():GetBank()) do
-						if v.Data.ID == v2.Data.ID then  RequestRemoveBank(k2) end
-					end
-				end ):SetColor(MAIN_TEXTCOLOR)
+				DV2P.OFF.RunFunction( "ReloadBankHUD_MenuAddOption", v, menu )
 				menu:Open()
 				menu:SetPos(X,Y)
 				
 				surface.PlaySound("devinity2/ui/buttons/button_hover.wav")
 			end
+
+			DV2P.OFF.RunFunction( "Post_ReloadBankHUD_Populate", v, a )
 		end
 	end
+
+	DV2P.OFF.RunFunction( "Post_ReloadBankHUD" )
 end
 
 function ReloadBankInventoryHUD()
+	DV2P.OFF.RunFunction( "Pre_ReloadBankInventoryHUD" )
+
 	if (!StationMenu or !StationMenu.ListBankInv) then return end
 	
 	StationMenu.ListBankInv:Clear()
 	
 	for k,v in pairs(LocalPlayer():GetInventory()) do
 		if (v.Data) then
+			DV2P.OFF.RunFunction( "Pre_ReloadBankInventoryHUD_Populate" )
+
 			local a = StationMenu.ListBankInv:Add("DButton")
 			a:SetSize(64,64)
 			a:SetText("")
@@ -54,21 +62,23 @@ function ReloadBankInventoryHUD()
 				menu.Paint = function(s,w,h) DrawRect(0,0,w,h,MAIN_GUICOLOR) end
 				menu:AddOption( "Deposit", function() RequestAddBank(k) end ):SetColor(MAIN_TEXTCOLOR)
 				menu:AddOption( "Deposit All", function() for i=1, MAIN_MAXIMUM_SLOTS do RequestAddBank(i) end  end ):SetColor(MAIN_TEXTCOLOR)
-				menu:AddOption( "Deposit All Type", function()
-					for k2,v2 in pairs(LocalPlayer():GetInventory()) do
-						if v.Data.ID == v2.Data.ID then  RequestAddBank(k2) end
-					end
-				end ):SetColor(MAIN_TEXTCOLOR)
+				DV2P.OFF.RunFunction( "ReloadBankInventoryHUD_MenuAddOption", v, menu )
 				menu:Open()
 				menu:SetPos(X,Y)
 				
 				surface.PlaySound("devinity2/ui/buttons/button_hover.wav")
 			end
+
+			DV2P.OFF.RunFunction( "Post_ReloadBankInventoryHUD_Populate", v, a )
 		end
 	end
+
+	DV2P.OFF.RunFunction( "Post_ReloadBankInventoryHUD" )
 end
 
 function OpenStation_Bank(StationMenu)
+	DV2P.OFF.RunFunction( "Pre_OpenStation_Bank", StationMenu )
+
 	local W = StationMenu:GetWide()
 	local H = StationMenu:GetTall()
 	
@@ -139,4 +149,5 @@ function OpenStation_Bank(StationMenu)
 	ReloadBankInventoryHUD()
 	
 	StationMenu.Bank:SetVisible(true)
+	DV2P.OFF.RunFunction( "Post_OpenStation_Bank", StationMenu )
 end
