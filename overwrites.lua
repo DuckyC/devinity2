@@ -16,14 +16,18 @@ function DV2P.OFF.RunFunction( name, ... )
 end
 
 function DV2P.OFF.AddFunction( funcName, id, func )
+	if not funcName or not id or not func then return end
+	
 	DV2P.OFF.functions[ funcName ] = DV2P.OFF.functions[ funcName ] or {}
 
 	DV2P.OFF.functions[ funcName ][ id ] = func
 end
 
 function DV2P.OFF.RemoveFunction( funcName, id  )
-	if not DV2P.OFF.functions[ funcName ] then return end
+	if not funcName or not id then return end
 	
+	if not DV2P.OFF.functions[ funcName ] then return end
+
 	DV2P.OFF.functions[ funcName ][ id ] = nil
 end
 
