@@ -202,8 +202,34 @@ function DV2P.pathfinder:StartWarpTo( sysData, straight, callback )
 	end, function( err ) print( err ) end )
 end
 
+function DV2P.pathfinder:StartWarpPath( path, callback )
+	self.inProgress = true
+	self.start = nil
+	self.dest = nil
+	self.path = path
+	self.fullpath = nil
+	self.callback = callback
+end
+
+function DV2P.pathfinder:AddToCurrentPath( ... )
+	if not self:IsInProgress() then return end
+	if not self.path then return end
+
+	local args = { ... }
+
+	for k, v in pairs( args ) do
+		if v == nil then continue end
+
+		self.path[ #self.path + 1 ] = v
+
+		if not self.fullpath then return end
+		self.fullpath[ #self.fullpath + 1 ] = v
+	end
+end
+
 function DV2P.pathfinder:FinishPath()
 	self.inProgress = false
+	self.start = nil
 	self.dest = nil
 	self.path = nil
 	self.fullpath = nil
@@ -267,12 +293,8 @@ function DV2P.pathfinder:Think()
 				self.path = self:CalculatePath( self.dest.Pos, plyPos, maxWarpDist, self.straight )
 				
 				if self.path then
-					self.fullpath = {}
-					for k, v in pairs( self.path ) do
-						self.fullpath[ k ] = v
-					end
-					
 					local name, id = lp:GetRegion()
+					print( lp:GetRegion() )
 					self.start = GAMEMODE.SolarSystems[ id ]
 				else
 					lp:AddNote( "Could not find path to specified destination!" );
@@ -283,6 +305,13 @@ function DV2P.pathfinder:Think()
 			if not self.path then
 				self:FinishPath()
 				return
+			else
+				if not self.fullpath then
+					self.fullpath = {}
+					for k, v in pairs( self.path ) do
+						self.fullpath[ k ] = v
+					end
+				end
 			end
 			
 			if not self.nextNodeSet then
