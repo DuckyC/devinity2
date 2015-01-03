@@ -12,12 +12,12 @@ concommand.Add( "dv2_pinpoint_warp_id", function( ply, cmd, args )
 		local sys = GAMEMODE.SolarSystems[ id ]
 		if not sys then return end
 
-		DV2P.GetPlugin( "Pinpoint Warping" ):SetWarpDestination( sys.Pos, Vector() )
+		lp:SetPinpointWarpDestination( sys.Pos, Vector() )
 	else
 		local ent = GAMEMODE.MapEnts[ id ]
 		if not ent then return end
 
-		DV2P.GetPlugin( "Pinpoint Warping" ):SetWarpDestination( ent.Pos, ent.FloatPos )
+		lp:SetPinpointWarpDestination( ent.Pos, ent.FloatPos )
 	end
 end )
 
@@ -62,6 +62,13 @@ function PLUGIN:SetWarpDestination( pos, fpos )
 
 	lp:SetWarpDestination( p, fp )
 end
+
+local meta = FindMetaTable("Player")
+function meta:SetPinpointWarpDestination( pos, fpos )
+	DV2P.GetPlugin( "Pinpoint Warping" ):SetWarpDestination( pos, fpos )
+end
+
+
 
 
 /*local prev = -1
