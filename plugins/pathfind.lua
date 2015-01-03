@@ -123,10 +123,10 @@ function DV2P.pathfinder:CalculatePath( dest, origin, range, straight )
 			else
 				pos = prev + dir * ( range * 0.99 )
 			end
-			
-			if foundDest then break end
 
 			path[ #path + 1 ] = pos
+			
+			if foundDest then break end
 
 			prev = pos
 		end
