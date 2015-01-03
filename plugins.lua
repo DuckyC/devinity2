@@ -93,6 +93,12 @@ function DV2P.SetupPluginPanel( name )
 	local panel = vgui.Create( "DPanel", pluginPanel )
 	panel:SetPos( 0, 130 )
 	panel.Paint = function( pnl, w, h ) end
+	function panel:PerformLayout( w, h )
+		if plugin.PanelPerformLayout then
+			plugin:PanelPerformLayout( self, w, h )
+		end
+	end
+
 	DV2P.PluginMenu[ "plugin_" .. name .. "_panel" ] = panel
 
 	if plugin.PanelSetup then
@@ -148,6 +154,7 @@ function DV2P.OpenPluginMenu()
 	window:SetTitle( "" )
 	window:SetVisible( true )
 	window:SetDeleteOnClose( false )
+	window:MakePopup()
 	window.Paint = function( pnl, w, h ) 
 		DrawRect( 0, 0, w, h, MAIN_BLACKCOLOR )
 		DrawOutlinedRect( 0, 0, w, h, MAIN_GUICOLOR )
@@ -161,25 +168,7 @@ function DV2P.OpenPluginMenu()
 	local pluginList = vgui.Create( "DScrollPanel", window )
 	pluginList:SetPos( 4, 22 + 4)
 
-	pluginList.VBar:SetWide( 8 )
-	pluginList.VBar.Paint = function( pnl, w, h ) end 
-	pluginList.VBar.btnGrip.Paint = function( pnl, w, h )
-		DrawRect( 0, 0, w, h, MAIN_GUICOLOR )
-	end
-	pluginList.VBar.btnUp.Paint = function( pnl, w, h )
-		if pnl.Hovered then
-			DrawRect( 0, 0, w, h, MAIN_GREENCOLOR )
-		else
-			DrawRect( 0, 0, w, h, MAIN_GUICOLOR )
-		end
-	end
-	pluginList.VBar.btnDown.Paint = function( pnl, w, h )
-		if pnl.Hovered then
-			DrawRect( 0, 0, w, h, MAIN_GREENCOLOR )
-		else
-			DrawRect( 0, 0, w, h, MAIN_GUICOLOR )
-		end
-	end
+	DV2P.PaintVBar( pluginList.VBar )
 	DV2P.PluginMenu.pluginList = pluginList
 
 
@@ -271,16 +260,10 @@ function DV2P.OpenPluginMenu()
 		
 		for name, plugin in pairs( DV2P.Plugins ) do
 			local panel = DV2P.PluginMenu[ "plugin_" .. name .. "_panel" ]
-
+			
 			if not IsValid( panel ) then return end
 			panel:SetPos( 0, off + 4)
 			panel:SetSize( pW, pH - off - 4 )
-
-			local pW, pH = panel:GetSize()
-
-			if plugin.PanelPerformLayout then
-				plugin:PanelPerformLayout( panel, pW, pH )
-			end
 		end
 	end
 
