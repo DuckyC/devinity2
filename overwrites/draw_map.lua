@@ -22,13 +22,13 @@ local Blac = Color(0,0,0,255)
 local LineC = Color(150,150,150,30)
 local Grey = Color(70,70,70,200)
 local Cyan = Color(0,250,250,200)
-local Dist = 3000
+local Dist = DV2P.Map.Dist or 3000
 
 local SysListDim = {x=5,y=5,w=300,h=500}
 
 local Origin	= Vector(0,0,0)
 
-local CamData = {
+local CamData = DV2P.Map.CamData or {
 	angles 		= Angle(30,0,0),
 	fov 		= 90,
 	origin 		= Vector(3000,0,3000),
@@ -42,9 +42,9 @@ local CamData = {
 	znear		= 0.1,
 }
 
-local LocalMap = false
-local MousePos = nil
-local Zoom	   = 1000
+local LocalMap = DV2P.Map.LocalMap or false
+local MousePos = DV2P.Map.MousePos or nil
+local Zoom	   = DV2P.Map.Zoom or 1000
 
 local Clamp 	= math.Clamp
 local ceil 		= math.ceil
@@ -185,8 +185,9 @@ hook.Add("Think","Derp",function()
 
 	DV2P.Map.LocalMap = LocalMap
 	DV2P.Map.CamData = CamData
-	DV2P.Map.MousePos = nil
-	DV2P.Map.Zoom = 1000
+	DV2P.Map.MousePos = MousePos
+	DV2P.Map.Zoom = Zoom
+	DV2P.Map.Dist = Dist
 
 	DV2P.OFF.RunFunction( "Post_Map_Think" )
 end)
