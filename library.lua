@@ -162,3 +162,25 @@ function DV2P.HoversAnyPanel()
 
 	return false
 end
+
+function DV2P.PaintVBar( VBar )
+	VBar:SetWide( 8 )
+	VBar.Paint = function( pnl, w, h ) end 
+	VBar.btnGrip.Paint = function( pnl, w, h )
+		DrawRect( 0, 0, w, h, MAIN_GUICOLOR )
+	end
+	VBar.btnUp.Paint = function( pnl, w, h )
+		if pnl.Hovered then
+			DrawRect( 0, 0, w, h, MAIN_GREENCOLOR )
+		else
+			DrawRect( 0, 0, w, h, MAIN_GUICOLOR )
+		end
+	end
+	VBar.btnDown.Paint = function( pnl, w, h )
+		if pnl.Hovered then
+			DrawRect( 0, 0, w, h, MAIN_GREENCOLOR )
+		else
+			DrawRect( 0, 0, w, h, MAIN_GUICOLOR )
+		end
+	end
+end
