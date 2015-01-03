@@ -87,7 +87,7 @@ function OpenStation_Crafting(s)
 							local Count = pl:CountItems(v)
 							local Conflicts = false
 							
-							for k = 1,4 do
+							for k = 1,10 do
 								local b = s.CraftingList[k]
 								
 								if (k != i+1 and CompareItems(v,b)) then Conflicts = true break end
