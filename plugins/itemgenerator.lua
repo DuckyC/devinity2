@@ -4,6 +4,43 @@ local count = table.Count(GAMEMODE.SolarSystems)
 local n = 10 //because metamist logic
 local max = (n*(2*count-n+1))/2
 
+function PLUGIN:GetOresForCraftingID( id, numOres )
+	numOres = numOres or 10
+
+	if id < ( numOres * ( numOres + 1 ) ) / 2 then
+		return {}, 0
+	end
+
+	local remainder = id
+	local list = {}
+	local maxID = count
+	for i = 1, numOres do
+		
+		local nextNum = math.min( remainder, maxID )
+		while nextNum > 1 and list[ nextNum ] or ( ( i ~= numOres and nextNum > remainder - ( ( ( (numOres - i) * (numOres - i + 1) ) ) / 2 ) ) ) do
+			nextNum = nextNum - 1
+			if nextNum <= 0 then break end
+		end
+		
+		remainder = remainder - nextNum
+		list[ nextNum ] = true
+		
+		if remainder <= 0 then break end
+	end
+	if remainder > 0 then
+		return {}, 0
+	end
+
+	local total = 0
+	local newList = {}
+	for k, v in pairs( list ) do
+		newList[ #newList + 1 ] = k
+		total = total + k
+	end
+
+	table.sort( newList )
+	return newList, total
+end
 
 concommand.Remove("dv2_generate_recipe")
 concommand.Add("dv2_generate_recipe", function() 
@@ -49,3 +86,14 @@ concommand.Add("dv2_generate_recipe", function()
 	print(#content, "writing")
 	file.Write("dv2exports/recipe.txt", content)
 end)
+
+concommand.Add( "dv2_craftingid_ores", function( ply, cmd, args )
+	local id = tonumber( args[ 1 ] )
+	local num = tonumber( args[ 2 ] )
+
+	if id == nil then return end
+		
+	local ids, total = DV2P.GetPlugin( "Item Generator" ):GetOresForCraftingID( id, num )
+	print( table.concat( ids, "," ) )
+	print( "Adds up to: " .. total )
+end )
