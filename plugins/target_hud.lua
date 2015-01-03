@@ -88,7 +88,7 @@ DV2P.OFF.AddFunction( "Post_DrawTargetHUD", "DrawTargetHUDOverlay", function()
 			end
 		end
 
-		targetIDs[ v:GetIndex() ] = true
+		targetIDs[ v:GetIndex() ] = v
 	end
 
 	local reg, id = lp:GetRegion()
@@ -115,15 +115,12 @@ DV2P.OFF.AddFunction( "Post_DrawTargetHUD", "DrawTargetHUDOverlay", function()
 		end
 	end
 
-	local indent = #targets ~= 0
 	local C = 0
 	for k, v in pairs( potentialTargets ) do
-		if targetIDs[ v:GetIndex() ] then continue end
-
+		if targetIDs[ v:GetIndex() ] == v then continue end
 		C = C + 1
 
-		local x, y = ListX, ListY + ListH * C
-		if indent then x = x - 390 end
+		local x, y = ListX - 390, ListY + ListH * C
 
 		DrawRect(x,y,320,ListH,MAIN_BLACKCOLOR)
 		DrawOutlinedRect(x,y,320,ListH,MAIN_GUICOLOR)
