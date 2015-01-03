@@ -277,13 +277,13 @@ end
 
 local Icon = Material("devinity2/hud/hudicons/options.png")
 hook.Add("HUDPaint", "DrawIcon", function()
-	DrawMaterialRect(35,3,16,16,MAIN_BLACKCOLOR,Icon) 
-	if (input.IsMouseInBox(35,5,16,16)) then
-		DrawMaterialRect(35,3,16,16,MAIN_GREENCOLOR,Icon) 
+	DrawMaterialRect(37,3,16,16,MAIN_BLACKCOLOR,Icon) 
+	if (input.IsMouseInBox(37,5,16,16)) then
+		DrawMaterialRect(37,3,16,16,MAIN_GREENCOLOR,Icon) 
 		if (input.MousePress(MOUSE_LEFT,"OpenPluginMenu") and (!DV2P.PluginMenu.window or !DV2P.PluginMenu.window:IsVisible())) then
 			DV2P.OpenPluginMenu()
 		end
 	else
-		DrawMaterialRect(35,3,16,16,MAIN_WHITECOLOR,Icon) 
+		DrawMaterialRect(37,3,16,16,MAIN_WHITECOLOR,Icon) 
 	end
 end)
