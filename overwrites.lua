@@ -41,7 +41,6 @@ end )
 
 DV2P.OFF.AddFunction( "ReloadBankInventoryHUD_MenuAddOption", "DepositAllType", function( item, menu ) 
 	menu:AddOption( "Deposit All Type", function()
-		print( item )
 		for k2,v2 in pairs(LocalPlayer():GetInventory()) do
 			if item.Data.ID == v2.Data.ID then  RequestAddBank(k2) end
 		end
