@@ -1,8 +1,67 @@
 PLUGIN.Name = "System ID Miner"
 PLUGIN.Description = "Finds the quickest path to go through list of IDs and automatically mines ore."
 
+function PLUGIN:ClearIDs()
+	for k, v in pairs( self.derma.ids ) do
+		v:Remove()
+		v._btnRemove:Remove()
+	end
+	self.derma.ids = {}
+	local container = self.derma.container
+	container:InvalidateLayout()
+end
+
+function PLUGIN:AddID( id )
+	local container = self.derma.container
+	local idPanel = self.derma.idPanel
+
+	local i = #self.derma.ids + 1
+
+	local number = vgui.Create( "DNumberWang", idPanel )
+	number:SetEditable( true )
+	number:SetText( id or "" )
+
+	local btnRemove = vgui.Create( "DVButton", idPanel )
+	btnRemove._id = i
+	btnRemove:SetText( "-" )
+	btnRemove.DoClick = function( pnl )
+		self.derma.ids[ pnl._id ]:Remove()
+		pnl:Remove()
+		table.remove( self.derma.ids, pnl._id )
+
+		for k, v in pairs( self.derma.ids ) do
+			v._btnRemove._id = k
+		end
+
+		container:InvalidateLayout()
+	end
+	number._btnRemove = btnRemove
+	self.derma.ids[ i ] = number
+
+	container:InvalidateLayout()
+end
+
 function PLUGIN:PanelSetup( container )
 	self:SetPanelSize( 200, 410 )
+
+	local craftID = vgui.Create( "DNumberWang", container )
+	craftID:SetEditable( true )
+	self.derma.craftID = craftID
+
+	local btnCraftID = vgui.Create( "DVButton", container )
+	btnCraftID:SetText( "Set" )
+	btnCraftID.DoClick = function( pnl )
+		local id = craftID:GetValue()
+
+		local ids, sum = DV2P.GetPlugin( "Item Generator" ):GetOresForCraftingID( id )
+		if #ids > 0 then
+			self:ClearIDs()
+			for k, v in pairs( ids ) do
+				self:AddID( v )
+			end
+		end
+	end
+	self.derma.btnCraftID = btnCraftID
 
 	local idPanel = vgui.Create( "DScrollPanel", container )
 	idPanel.Paint = function( pnl, w, h )
@@ -18,31 +77,16 @@ function PLUGIN:PanelSetup( container )
 	local btnAdd = vgui.Create( "DVButton", container )
 	btnAdd:SetText( "+" )
 	btnAdd.DoClick = function( pnl, w, h )
-		local id = #self.derma.ids + 1
-
-		local number = vgui.Create( "DNumberWang", idPanel )
-		number:SetEditable( true )
-
-		local btnRemove = vgui.Create( "DVButton", idPanel )
-		btnRemove._id = id
-		btnRemove:SetText( "-" )
-		btnRemove.DoClick = function( pnl )
-			self.derma.ids[ pnl._id ]:Remove()
-			pnl:Remove()
-			table.remove( self.derma.ids, pnl._id )
-
-			for k, v in pairs( self.derma.ids ) do
-				v._btnRemove._id = k
-			end
-
-			container:InvalidateLayout()
-		end
-		number._btnRemove = btnRemove
-		self.derma.ids[ id ] = number
-
-		container:InvalidateLayout()
+		self:AddID()
 	end
 	self.derma.btnAdd = btnAdd
+
+	local btnClear = vgui.Create( "DVButton", container )
+	btnClear:SetText( "Clear" )
+	btnClear.DoClick = function( pnl, w, h )
+		self:AddID()
+	end
+	self.derma.btnClear = btnClear
 
 	local btnStart = vgui.Create( "DVButton", container )
 	btnStart:SetText( "Start" )
@@ -65,8 +109,15 @@ function PLUGIN:PanelSetup( container )
 end
 
 function PLUGIN:PanelPerformLayout( container, w, h )
-	self.derma.idPanel:SetPos( 10, 10 )
-	self.derma.idPanel:SetSize( w - 20, h - 40 - 30 - 4 - 10 - 4 - 20 - 4 )
+	self.derma.craftID:SetPos( 10, 10 )
+	self.derma.craftID:SetSize( w - 40 - 20 - 4, 20 )
+
+	self.derma.btnCraftID:SetPos( w - 40 - 10, 10 )
+	self.derma.btnCraftID:SetSize( 40, 20 )
+
+
+	self.derma.idPanel:SetPos( 10, 10 + 20 + 4 )
+	self.derma.idPanel:SetSize( w - 20, h - 40 - 20 - 4 - 30 - 4 - 10 - 4 - 20 - 4 )
 
 	local iW, iH = self.derma.idPanel:GetSize()
 
@@ -83,6 +134,9 @@ function PLUGIN:PanelPerformLayout( container, w, h )
 
 	self.derma.btnAdd:SetPos( w - 30 - 10, h - 40 - 30 - 4 - 20 - 4 )
 	self.derma.btnAdd:SetSize( 30, 20 )
+
+	self.derma.btnClear:SetPos( 10, h - 40 - 30 - 4 - 20 - 4 )
+	self.derma.btnClear:SetSize( 50, 20 )
 
 	self.derma.btnStart:SetPos( 10, h - 40 - 30 - 4 )
 	self.derma.btnStart:SetSize( w - 20, 30 )
