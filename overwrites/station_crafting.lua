@@ -211,14 +211,12 @@ function OpenStation_Crafting(s)
 		end
 		a.DoClick = function(s)
 			local ores = {}
-			local count = 0
 			for k,v in pairs(LocalPlayer():GetInventory()) do
-				if (v.Data and v.Data.Material and not ores[ v.Data.ID ]) then
-					ores[ v.Data.ID ] = v
-					count = count + 1
-					if count == 10 then break end
+				if (v.Data and v.Data.Material) then
+					ores[k] = v
 				end
 			end
+			if table.Count(ores) > 10 then return end
 			StationMenu.Crafting.CraftingList = {}
 			for k,v in pairs(ores) do
 				StationMenu.Crafting.CraftingList[#StationMenu.Crafting.CraftingList+1] = v.Data
