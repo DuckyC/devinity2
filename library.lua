@@ -126,7 +126,8 @@ function DV2P.GetNearestNPC(maxdistance)
 end
 
 function DV2P.IsMapScreenLocal()
-	local isNotLocal = false
+	return DV2P.Map.LocalMap == true
+	/*local isNotLocal = false
 	
 	if IsValid( MAP_Frame ) then
 		local children = MAP_Frame:GetChildren()
@@ -141,7 +142,7 @@ function DV2P.IsMapScreenLocal()
 		end
 	end
 	
-	return not isNotLocal
+	return not isNotLocal*/
 end
 
 local worldPnl = vgui.GetWorldPanel()
