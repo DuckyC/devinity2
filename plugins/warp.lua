@@ -1,18 +1,24 @@
-
 local lp = LocalPlayer()
 
 PLUGIN.Name = "Pinpoint Warping"
 PLUGIN.Description = "Works exactly like normal warping, except it's pin point accurate."
 
-
 concommand.Add( "dv2_pinpoint_warp_id", function( ply, cmd, args )
 	local id = tonumber( args[ 1 ] )
 	if id == nil then return end
 
-	local ent = GAMEMODE.MapEnts[ id ]
-	if not ent then return end
+	if id == 0 then
+		local reg, id = lp:GetRegion()
+		local sys = GAMEMODE.SolarSystems[ id ]
+		if not sys then return end
 
-	DV2P.GetPlugin( "Pinpoint Warping" ):SetWarpDestination( ent.Pos, ent.FloatPos )
+		DV2P.GetPlugin( "Pinpoint Warping" ):SetWarpDestination( sys.Pos, Vector() )
+	else
+		local ent = GAMEMODE.MapEnts[ id ]
+		if not ent then return end
+
+		DV2P.GetPlugin( "Pinpoint Warping" ):SetWarpDestination( ent.Pos, ent.FloatPos )
+	end
 end )
 
 function PLUGIN:SetWarpDestination( pos, fpos )
