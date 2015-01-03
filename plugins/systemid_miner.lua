@@ -2,20 +2,58 @@ PLUGIN.Name = "System ID Miner"
 PLUGIN.Description = "Finds the quickest path to go through list of IDs and automatically mines ore."
 
 function PLUGIN:PanelSetup( container )
-	self:SetPanelSize( 200, 110 )
+	self:SetPanelSize( 200, 210 )
+
+	local idPanel = vgui.Create( "DScrollPanel", container )
+	idPanel.Paint = function( pnl, w, h )
+		DrawRect( 0, 0, w, h, MAIN_BLACKCOLOR )
+		DrawOutlinedRect( 0, 0, w, h, MAIN_GUICOLOR )
+	end
+	DV2P.PaintVBar( idPanel.VBar )
+
+	self.derma.idPanel = idPanel
+
+	self.derma.ids = {}
+
+	local btnAdd = vgui.Create( "DVButton", container )
+	btnAdd:SetText( "+" )
+	btnAdd.DoClick = function( pnl, w, h )
+		local id = #self.derma.ids + 1
+
+		local number = vgui.Create( "DNumberWang", idPanel )
+		number:SetEditable( true )
+
+		local btnRemove = vgui.Create( "DVButton", idPanel )
+		btnRemove._id = id
+		btnRemove:SetText( "-" )
+		btnRemove.DoClick = function( pnl )
+			self.derma.ids[ pnl._id ]:Remove()
+			pnl:Remove()
+			table.remove( self.derma.ids, pnl._id )
+
+			for k, v in pairs( self.derma.ids ) do
+				v._btnRemove._id = k
+			end
+
+			container:InvalidateLayout()
+		end
+		number._btnRemove = btnRemove
+		self.derma.ids[ id ] = number
+
+		container:InvalidateLayout()
+	end
+	self.derma.btnAdd = btnAdd
 
 	local btnStart = vgui.Create( "DVButton", container )
 	btnStart:SetText( "Start" )
 	btnStart.DoClick = function( pnl, w, h )
-		self:Start( {
-			500, 499,
-			498, 497,
-			496, 495,
-			494, 493,
-			277, 1
-		} )
-	end
+		local ids = {}
+		for k, v in pairs( self.derma.ids ) do
+			ids[ k ] = v:GetValue()
+		end
 
+		self:Start( ids )
+	end
 	self.derma.btnStart = btnStart
 
 	local btnFinish = vgui.Create( "DVButton", container )
@@ -23,16 +61,34 @@ function PLUGIN:PanelSetup( container )
 	btnFinish.DoClick = function( pnl, w, h )
 		self:Finish()
 	end
-
 	self.derma.btnFinish = btnFinish
 end
 
 function PLUGIN:PanelPerformLayout( container, w, h )
-	self.derma.btnStart:SetPos( 10, 10 )
-	self.derma.btnStart:SetSize( w - 20, 40 )
+	self.derma.idPanel:SetPos( 10, 10 )
+	self.derma.idPanel:SetSize( w - 20, h - 40 - 30 - 4 - 10 - 4 - 20 - 4 )
 
-	self.derma.btnFinish:SetPos( 10, 60 )
-	self.derma.btnFinish:SetSize( w - 20, 40 )
+	local iW, iH = self.derma.idPanel:GetSize()
+
+	local y = 0
+	for k, v in pairs( self.derma.ids ) do
+		v:SetPos( 4, 4 + ( 20 + 4 ) * y  )
+		v:SetSize( iW - 8 - 30 - 4, 20 )
+
+		v._btnRemove:SetPos( iW - 30 - 4, 4 + ( 20 + 4 ) * y )
+		v._btnRemove:SetSize( 30, 20 )
+
+		y = y + 1
+	end
+
+	self.derma.btnAdd:SetPos( w - 30 - 10, h - 40 - 30 - 4 - 20 - 4 )
+	self.derma.btnAdd:SetSize( 30, 20 )
+
+	self.derma.btnStart:SetPos( 10, h - 40 - 30 - 4 )
+	self.derma.btnStart:SetSize( w - 20, 30 )
+
+	self.derma.btnFinish:SetPos( 10, h - 40 )
+	self.derma.btnFinish:SetSize( w - 20, 30 )
 end
 
 function factorial( n )
@@ -226,7 +282,6 @@ local MatTarget = surface.GetTextureID("devinity2/hud/target_white")
 local plugin = PLUGIN
 DV2P.OFF.AddFunction( "Post_MAP_Frame_Paint", "SystemIDMinerPaint", function( pnl, w, h )
 	xpcall( function()
-		//DV2P.pathfinder:PaintPanel( pnl, w, h )
 		if DV2P.IsMapScreenLocal() then return end
 
 		if plugin.inProgress then
