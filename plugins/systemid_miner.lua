@@ -2,7 +2,7 @@ PLUGIN.Name = "System ID Miner"
 PLUGIN.Description = "Finds the quickest path to go through list of IDs and automatically mines ore."
 
 function PLUGIN:PanelSetup( container )
-	self:SetPanelSize( 200, 210 )
+	self:SetPanelSize( 200, 410 )
 
 	local idPanel = vgui.Create( "DScrollPanel", container )
 	idPanel.Paint = function( pnl, w, h )
@@ -178,6 +178,7 @@ function PLUGIN:Finish()
 	self.currentPathID = nil
 	self.state = nil
 	self.inProgress = false
+	DV2P.pathfinder:FinishPath()
 end
 
 function PLUGIN:WarpPathID( id, callback )
@@ -255,22 +256,25 @@ function PLUGIN:Think()
 						self.state = "inSystem"
 					end )
 				elseif self.state == "inSystem" then
-					if not DV2P.IsAt( "AsteroidField" ) then
-						DV2P.pathfinder:WarpToMapEnt( DV2P.GetNearest( "AsteroidField" ), function()
-							lp:AddNote( "Arrived to asteroid field" )
-						end )
-					else
-						local reg, id = lp:GetRegion()
-						local count = self:CheckInventory( id )
+					local reg, id = lp:GetRegion()
+					local count = self:CheckInventory( id )
 
-						if count < self.oreSlotCount then
-							self:Mine()
-						elseif count == self.oreSlotCount then
-							self:StopMine()
-							lp:RequestTarget( 0, 1 )
-							self:NextPath()
+					if count == self.oreSlotCount then
+						self:StopMine()
+						lp:RequestTarget( 0, 1 )
+						self:NextPath()
+					else
+						if not DV2P.IsAt( "AsteroidField" ) then
+							DV2P.pathfinder:WarpToMapEnt( DV2P.GetNearest( "AsteroidField" ), function()
+								lp:AddNote( "Arrived to asteroid field" )
+							end )
+						else
+
+							if count < self.oreSlotCount then
+								self:Mine()
+							end
+							self:CheckForPirates()
 						end
-						self:CheckForPirates()
 					end
 				end
 			end
