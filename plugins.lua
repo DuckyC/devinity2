@@ -103,6 +103,7 @@ function DV2P.SetupPluginPanel( name )
 
 	if plugin.PanelSetup then
 		//plugin._settingUp = true
+		plugin.derma.container = panel
 		plugin:PanelSetup( panel )
 		//plugin._settingUp = false
 	end
