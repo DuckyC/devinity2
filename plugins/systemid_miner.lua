@@ -44,6 +44,11 @@ end
 function PLUGIN:PanelSetup( container )
 	self:SetPanelSize( 200, 410 )
 
+	local labelCraftID = vgui.Create( "DLabel", container )
+	labelCraftID:SetText( "Crafting ID" )
+	labelCraftID:SizeToContents()
+	self.derma.labelCraftID = labelCraftID
+
 	local craftID = vgui.Create( "DNumberWang", container )
 	craftID:SetEditable( true )
 	self.derma.craftID = craftID
@@ -62,6 +67,12 @@ function PLUGIN:PanelSetup( container )
 		end
 	end
 	self.derma.btnCraftID = btnCraftID
+
+
+	local labelIDs = vgui.Create( "DLabel", container )
+	labelIDs:SetText( "IDs" )
+	labelIDs:SizeToContents()
+	self.derma.labelIDs = labelIDs
 
 	local idPanel = vgui.Create( "DScrollPanel", container )
 	idPanel.Paint = function( pnl, w, h )
@@ -109,15 +120,19 @@ function PLUGIN:PanelSetup( container )
 end
 
 function PLUGIN:PanelPerformLayout( container, w, h )
-	self.derma.craftID:SetPos( 10, 10 )
-	self.derma.craftID:SetSize( w - 40 - 20 - 4, 20 )
+	self.derma.labelCraftID:SetPos( 10, 10 )
 
-	self.derma.btnCraftID:SetPos( w - 40 - 10, 10 )
+	self.derma.craftID:SetPos( 20, 30 - 4 )
+	self.derma.craftID:SetSize( w - 40 - 20 - 10 - 4, 20 )
+
+	self.derma.btnCraftID:SetPos( w - 40 - 10, 30 - 4 )
 	self.derma.btnCraftID:SetSize( 40, 20 )
 
 
-	self.derma.idPanel:SetPos( 10, 10 + 20 + 4 )
-	self.derma.idPanel:SetSize( w - 20, h - 40 - 20 - 4 - 30 - 4 - 10 - 4 - 20 - 4 )
+	self.derma.labelIDs:SetPos( 10, 10 + 20 + 20 + 4 )
+
+	self.derma.idPanel:SetPos( 10, 10 + 20 + 20 + 20 )
+	self.derma.idPanel:SetSize( w - 20, h - 40 - 20 - 20 - 20 - 30 - 4 - 10 - 4 - 20 - 4 )
 
 	local iW, iH = self.derma.idPanel:GetSize()
 
