@@ -1,5 +1,17 @@
 PLUGIN.Name = "System Radar"
 
+surface.CreateFont( "SystemRadar_Name_Big", {size = 16, weight = 0, font = "Jupiter"} )
+surface.CreateFont( "SystemRadar_Name_Medium", {size = 12, weight = 800, font = "Jupiter"} )
+surface.CreateFont( "SystemRadar_Name_Small", {size = 10, weight = 0, font = "Jupiter"} )
+surface.CreateFont( "SystemRadar_Name_Tiny", {size = 8, weight = 0, font = "Jupiter"} )
+
+local fonts = {
+	"SystemRadar_Name_Tiny",
+	"SystemRadar_Name_Small",
+	"SystemRadar_Name_Medium",
+	"SystemRadar_Name_Big",
+}
+
 local lp = LocalPlayer()
 local UnknownFaction = Color(150,150,150,255)
 local OwnFaction = Color(0, 200, 0)
@@ -55,37 +67,65 @@ DV2P.OFF.AddFunction( "Post_MAP_Frame_Paint", "SystemRadarPaint", function( pnl,
 	if not lp then return end
 
 	xpcall( function()
-		if not DV2P.IsMapScreenLocal() then return end
-
 		local reg, id = lp:GetRegion()
-		local class, k = DV2P.GetLocalSystemPos( lp )
-		local players = player.GetAllInRegion( reg, lp )
-		local Scale = MAIN_SOLARSYSTEM_RADIUS/100
 
-		local counts = {
-			[k] = 1
-		}
+		if not DV2P.IsMapScreenLocal() then
+			local counts = {
+				[id] = 1
+			}
+			local Scale = MAIN_MAP_SIZE/2500
 
-		for k, v in pairs( players ) do
-			local Reg,ID = v:GetRegion()
-			local class, k = DV2P.GetLocalSystemPos( v )
+			local players = player.GetAll()
+			for k, v in pairs( players ) do
+				if not v then continue end
+				if v == lp then continue end
 
-			counts[ k ] = counts[ k ] or 0
+				local reg, id = v:GetRegion()
+				local sys = GAMEMODE.SolarSystems[ id ]
+				if not sys then continue end
 
-			//print( v.SPos )
-			local sPos = DV2P.Map.ToScreen((v.PlayerPos-GAMEMODE.SolarSystems[ID].Pos)/Scale+v.FloatPos/Scale)
-			DrawOutlinedRect( sPos.x - 3, sPos.y - 3, 6, 6, MAIN_GREENCOLOR )
-			DrawText( v:Nick(), "DVTextSmall", sPos.x + 5, sPos.y + 14 * counts[ k ], MAIN_GREENCOLOR )
+				counts[ id ] = counts[ id ] or 0
 
-			if v.WarpDest then
-				local warpSPos = DV2P.Map.ToScreen((v.WarpDest-GAMEMODE.SolarSystems[ID].Pos)/Scale+v.WarpDestDetail/Scale)
+				local fontID = 1 + math.max( 3 - math.floor( DV2P.Map.Dist / 500 ), 0 )
+				local font = fonts[ fontID ]
 
-				DrawLine( sPos.x, sPos.y, warpSPos.x, warpSPos.y, MAIN_GREENCOLOR )
-				DrawOutlinedRect( warpSPos.x - 3, warpSPos.y - 3, 6, 6, MAIN_GREENCOLOR )
+				local vRealPos = sys.Pos / Scale 
+				local sPos = DV2P.Map.ToScreen( vRealPos )
+				DrawOutlinedRect( sPos.x - 3, sPos.y - 3, 6, 6, MAIN_GREENCOLOR )
+				DrawText( v:Nick(), font, sPos.x + 5, sPos.y + 14 * counts[ id ], MAIN_GREENCOLOR )
+
+
+				counts[ id ] = counts[ id ] + 1
 			end
+		else
+			local class, k = DV2P.GetLocalSystemPos( lp )
+			local players = player.GetAllInRegion( reg, lp )
+			local Scale = MAIN_SOLARSYSTEM_RADIUS/100
 
-			counts[ k ] = counts[ k ] + 1
+			local counts = {
+				[k] = 1
+			}
+
+			for k, v in pairs( players ) do
+				local Reg,ID = v:GetRegion()
+				local class, k = DV2P.GetLocalSystemPos( v )
+
+				counts[ k ] = counts[ k ] or 0
+
+				//print( v.SPos )
+				local sPos = DV2P.Map.ToScreen((v.PlayerPos-GAMEMODE.SolarSystems[ID].Pos)/Scale+v.FloatPos/Scale)
+				DrawOutlinedRect( sPos.x - 3, sPos.y - 3, 6, 6, MAIN_GREENCOLOR )
+				DrawText( v:Nick(), "DVTextSmall", sPos.x + 5, sPos.y + 14 * counts[ k ], MAIN_GREENCOLOR )
+
+				if v.WarpDest then
+					local warpSPos = DV2P.Map.ToScreen((v.WarpDest-GAMEMODE.SolarSystems[ID].Pos)/Scale+v.WarpDestDetail/Scale)
+
+					DrawLine( sPos.x, sPos.y, warpSPos.x, warpSPos.y, MAIN_GREENCOLOR )
+					DrawOutlinedRect( warpSPos.x - 3, warpSPos.y - 3, 6, 6, MAIN_GREENCOLOR )
+				end
+
+				counts[ k ] = counts[ k ] + 1
+			end
 		end
-
 	end, function( err ) print( err ) end )
 end )
