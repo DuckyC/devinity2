@@ -33,6 +33,8 @@ DV2P.OFF.AddFunction( "FireSlot_OnFire", "DamageFeed", function( from, target, t
 	local lp = LocalPlayer()
 	if target == lp or lp == from then
 		local Dmg = turret.Dmg
+		if not target.GetShipData then return end
+		
 		if (target:GetShipData().Type == turret.Type) then Dmg = Dmg*5 end
 		Dmg = CalculateDamage(target, Dmg)
 		local parent = (lp == target and damage or targets)
