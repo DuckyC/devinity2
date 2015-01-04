@@ -109,6 +109,8 @@ end
 
 function DV2P.FireAll(Class, bool)
 	if bool == nil then bool = true end
+	if not lp.Equipment then return end
+	
 	for k, v in pairs( lp.Equipment ) do 
 		if v.Class == Class then ToggleFire( k, bool ) end
 	end
