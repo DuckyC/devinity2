@@ -42,7 +42,7 @@ function PLUGIN:AddID( id )
 end
 
 function PLUGIN:PanelSetup( container )
-	self:SetPanelSize( 200, 410 )
+	self:SetPanelSize( 200, 430 )
 
 	local labelCraftID = vgui.Create( "DLabel", container )
 	labelCraftID:SetText( "Crafting ID" )
@@ -99,6 +99,10 @@ function PLUGIN:PanelSetup( container )
 	end
 	self.derma.btnClear = btnClear
 
+	local checkboxStraight = vgui.Create( "DCheckBoxLabel", container )
+	checkboxStraight:SetText( "Straight" )
+	self.derma.checkboxStraight = checkboxStraight
+
 	local btnStart = vgui.Create( "DVButton", container )
 	btnStart:SetText( "Start" )
 	btnStart.DoClick = function( pnl, w, h )
@@ -107,7 +111,8 @@ function PLUGIN:PanelSetup( container )
 			ids[ k ] = v:GetValue()
 		end
 
-		self:Start( ids )
+		local straight = self.derma.checkboxStraight:GetChecked()
+		self:Start( ids, straight )
 	end
 	self.derma.btnStart = btnStart
 
@@ -132,7 +137,7 @@ function PLUGIN:PanelPerformLayout( container, w, h )
 	self.derma.labelIDs:SetPos( 10, 10 + 20 + 20 + 4 )
 
 	self.derma.idPanel:SetPos( 10, 10 + 20 + 20 + 20 )
-	self.derma.idPanel:SetSize( w - 20, h - 40 - 20 - 20 - 20 - 30 - 4 - 10 - 4 - 20 - 4 )
+	self.derma.idPanel:SetSize( w - 20, h - 40 - 20 - 20 - 20 - 30 - 4 - 10 - 4 - 20 - 4 - 20 - 4 )
 
 	local iW, iH = self.derma.idPanel:GetSize()
 
@@ -147,11 +152,13 @@ function PLUGIN:PanelPerformLayout( container, w, h )
 		y = y + 1
 	end
 
-	self.derma.btnAdd:SetPos( w - 30 - 10, h - 40 - 30 - 4 - 20 - 4 )
+	self.derma.btnAdd:SetPos( w - 30 - 10, h - 40 - 30 - 4 - 20 - 4 - 20 - 4 )
 	self.derma.btnAdd:SetSize( 30, 20 )
 
-	self.derma.btnClear:SetPos( 10, h - 40 - 30 - 4 - 20 - 4 )
+	self.derma.btnClear:SetPos( 10, h - 40 - 30 - 4 - 20 - 4 - 20 - 4 )
 	self.derma.btnClear:SetSize( 50, 20 )
+
+	self.derma.checkboxStraight:SetPos( 20, h - 40 - 30 - 4 - 16 - 4 )
 
 	self.derma.btnStart:SetPos( 10, h - 40 - 30 - 4 )
 	self.derma.btnStart:SetSize( w - 20, 30 )
@@ -172,7 +179,7 @@ function factorial( n )
 end
 
 local lp = LocalPlayer()
-function PLUGIN:CalculatePath( ids )
+function PLUGIN:CalculatePath( ids, straight )
 	local systems = {}
 	local count = 0
 	for k, v in pairs( ids ) do
@@ -196,7 +203,7 @@ function PLUGIN:CalculatePath( ids )
 		local closestDist = 0
 
 		for k, v in pairs( systems ) do
-			local path, dist = DV2P.pathfinder:CalculatePath( v.Pos, origin, maxWarpDist )
+			local path, dist = DV2P.pathfinder:CalculatePath( v.Pos, origin, maxWarpDist, straight )
 			if not path then continue end
 
 			if not closest or dist < closestDist then
@@ -222,7 +229,7 @@ function PLUGIN:CalculatePath( ids )
 	return fullpath, totalDist
 end
 
-function PLUGIN:Start( ids )
+function PLUGIN:Start( ids, straight )
 	self.oreSlotCount = math.floor( MAIN_MAXIMUM_SLOTS / #ids )
 
 	local newIDs = {}
@@ -233,13 +240,14 @@ function PLUGIN:Start( ids )
 		end
 	end
 
-	self.fullpath = self:CalculatePath( newIDs )
+	self.fullpath = self:CalculatePath( newIDs, straight )
 
 	if not self.fullpath then return end
 
 	self.currentPathID = 1
 	self.state = "warpPath"
 	self.inProgress = true
+	self.straight = true
 end
 
 function PLUGIN:Finish()
@@ -247,6 +255,7 @@ function PLUGIN:Finish()
 	self.currentPathID = nil
 	self.state = nil
 	self.inProgress = false
+	self.straight = nil
 	DV2P.pathfinder:FinishPath()
 end
 
@@ -361,6 +370,7 @@ DV2P.OFF.AddFunction( "Post_MAP_Frame_Paint", "SystemIDMinerPaint", function( pn
 			if plugin.fullpath then
 
 				local prev = nil
+				local scale = MAIN_MAP_SIZE/2500
 
 				for k, path in pairs( plugin.fullpath ) do
 					local col = Color( k * 25.5, 255 - k * 25.5, 50 )
@@ -370,12 +380,25 @@ DV2P.OFF.AddFunction( "Post_MAP_Frame_Paint", "SystemIDMinerPaint", function( pn
 					if #path == 0 then continue end
 
 					local last = path[ #path ]
+					if not last then continue end
+
 					local s = 8 + math.cos( CurTime() * 5 ) * 2
-					DrawRect( last.SPos.x - s / 2, last.SPos.y - s / 2, s, s, col )
+					local sPos = nil
+					if type( last ) == "Vector" then
+						sPos = DV2P.Map.ToScreen( last / scale )
+					else
+						sPos = last.SPos
+					end
+					DrawRect( sPos.x - s / 2, sPos.y - s / 2, s, s, col )
 
 					for k, v in pairs( path ) do
 						if not v then continue end
-						local pos = v.SPos
+						local pos = nil
+						if type( v ) == "Vector" then
+							pos = DV2P.Map.ToScreen( v / scale )
+						else
+							pos = v.SPos
+						end
 						
 						if pos and prev then
 							surface.DrawLine( prev.x, prev.y, pos.x, pos.y )
