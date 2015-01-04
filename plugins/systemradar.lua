@@ -103,6 +103,15 @@ DV2P.OFF.AddFunction( "Post_MAP_Frame_Paint", "SystemRadarPaint", function( pnl,
 				local reg, id = v:GetRegion()
 				counts[ id ] = counts[ id ] or 0
 
+				if id == 0 then
+					local sPos = { x = 10, y = ScrH() / 2 - 14 * 5 }
+					DrawOutlinedRect( sPos.x - 3, sPos.y - 3, 6, 6, color )
+					DrawText( v:Nick(), font, sPos.x + 5, sPos.y + 14 * counts[ id ], color )
+
+					counts[ id ] = counts[ id ] + 1
+					continue
+				end
+
 				local sys = GAMEMODE.SolarSystems[ id ]
 				if not sys then continue end
 
