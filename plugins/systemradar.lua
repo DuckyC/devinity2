@@ -14,19 +14,36 @@ local fonts = {
 
 local lp = LocalPlayer()
 local UnknownFaction = Color(150,150,150,255)
-local OwnFaction = Color(0, 200, 0)
-local EnemyFaction = Color(255,0,0)
+local OwnFaction = Color( 100, 200, 100, 200 )
+local EnemyFaction = Color( 200, 100, 100, 200 )
+
+local function GetPlayerColor( ply )
+	if not ply then return UnknownFaction end
+	local ownFaction = lp:GetFaction()
+
+	local color = UnknownFaction
+	local faction = ply:GetFaction()
+
+	if faction ~= "" then
+		if faction == ownFaction then
+			color = OwnFaction
+		else
+			color = EnemyFaction
+		end
+	end
+
+	return color
+end
 
 local function DrawRadarPlayer(faction, ply, y)
 	local Class, ID = DV2P.GetLocalSystemPos(ply)
-	local ownfaction = LocalPlayer():GetFaction()
 	surface.SetFont("DefaultSmall")
 
 	local w1, h1 = surface.GetTextSize( ply:GetName() .." | "..Class.." "..ID)
 	DrawText(ply:GetName() .." | "..Class.." "..ID, "DefaultSmall", 202, y, MAIN_TEXTCOLOR)
 	faction = (faction != "") and faction or "None"
 	
-	local col = (ownfaction == faction) and OwnFaction or UnknownFaction
+	local col = GetPlayerColor( ply )
 
 	local w2, h2 = surface.GetTextSize( faction )
 	DrawText(faction, "DefaultSmall", 202-w2-5, y, col)
@@ -65,6 +82,7 @@ end)
 
 DV2P.OFF.AddFunction( "Post_MAP_Frame_Paint", "SystemRadarPaint", function( pnl, w, h )
 	if not lp then return end
+	local ownFaction = lp:GetFaction()
 
 	xpcall( function()
 		local reg, id = lp:GetRegion()
@@ -80,20 +98,21 @@ DV2P.OFF.AddFunction( "Post_MAP_Frame_Paint", "SystemRadarPaint", function( pnl,
 				if not v then continue end
 				if v == lp then continue end
 
+				local color = GetPlayerColor( v )
+
 				local reg, id = v:GetRegion()
+				counts[ id ] = counts[ id ] or 0
+
 				local sys = GAMEMODE.SolarSystems[ id ]
 				if not sys then continue end
-
-				counts[ id ] = counts[ id ] or 0
 
 				local fontID = 1 + math.max( 3 - math.floor( DV2P.Map.Dist / 500 ), 0 )
 				local font = fonts[ fontID ]
 
 				local vRealPos = sys.Pos / Scale 
 				local sPos = DV2P.Map.ToScreen( vRealPos )
-				DrawOutlinedRect( sPos.x - 3, sPos.y - 3, 6, 6, MAIN_GREENCOLOR )
-				DrawText( v:Nick(), font, sPos.x + 5, sPos.y + 14 * counts[ id ], MAIN_GREENCOLOR )
-
+				DrawOutlinedRect( sPos.x - 3, sPos.y - 3, 6, 6, color )
+				DrawText( v:Nick(), font, sPos.x + 5, sPos.y + 14 * counts[ id ], color )
 
 				counts[ id ] = counts[ id ] + 1
 			end
@@ -107,6 +126,10 @@ DV2P.OFF.AddFunction( "Post_MAP_Frame_Paint", "SystemRadarPaint", function( pnl,
 			}
 
 			for k, v in pairs( players ) do
+				if not v then continue end
+
+				local color = GetPlayerColor( v )
+
 				local Reg,ID = v:GetRegion()
 				local class, k = DV2P.GetLocalSystemPos( v )
 
@@ -114,14 +137,14 @@ DV2P.OFF.AddFunction( "Post_MAP_Frame_Paint", "SystemRadarPaint", function( pnl,
 
 				//print( v.SPos )
 				local sPos = DV2P.Map.ToScreen((v.PlayerPos-GAMEMODE.SolarSystems[ID].Pos)/Scale+v.FloatPos/Scale)
-				DrawOutlinedRect( sPos.x - 3, sPos.y - 3, 6, 6, MAIN_GREENCOLOR )
-				DrawText( v:Nick(), "DVTextSmall", sPos.x + 5, sPos.y + 14 * counts[ k ], MAIN_GREENCOLOR )
+				DrawOutlinedRect( sPos.x - 3, sPos.y - 3, 6, 6, color )
+				DrawText( v:Nick(), "DVTextSmall", sPos.x + 5, sPos.y + 14 * counts[ k ], color )
 
 				if v.WarpDest then
 					local warpSPos = DV2P.Map.ToScreen((v.WarpDest-GAMEMODE.SolarSystems[ID].Pos)/Scale+v.WarpDestDetail/Scale)
 
-					DrawLine( sPos.x, sPos.y, warpSPos.x, warpSPos.y, MAIN_GREENCOLOR )
-					DrawOutlinedRect( warpSPos.x - 3, warpSPos.y - 3, 6, 6, MAIN_GREENCOLOR )
+					DrawLine( sPos.x, sPos.y, warpSPos.x, warpSPos.y, color )
+					DrawOutlinedRect( warpSPos.x - 3, warpSPos.y - 3, 6, 6, color )
 				end
 
 				counts[ k ] = counts[ k ] + 1
