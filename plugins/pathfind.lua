@@ -39,12 +39,13 @@ local lp = LocalPlayer()
 local MatTarget = surface.GetTextureID("devinity2/hud/target_white")
 
 DV2P.pathfinder = DV2P.pathfinder or {
-	vguiInitialized = false,
 	mapDerma = {},
 	overrides = {},
 	nextWarpTime = 0,
 	warpDelay = 2
 }
+
+DV2P.pathfinder.debug = false
 
 DV2P.pathfinder.overrides.input_KeyPress = DV2P.pathfinder.overrides.input_KeyPress or input.KeyPress
 
@@ -471,13 +472,11 @@ end )
 
 DV2P.OFF.AddFunction( "Post_OpenMap", "MapPathfindPanel", function()
 	xpcall( function()
-		if DV2P.pathfinder.vguiInitialized then
-			for k, v in pairs( DV2P.pathfinder.mapDerma ) do
-				v:Remove()
-			end
-			
-			DV2P.pathfinder.vguiInitialized = false	
+		if IsValid( DV2P.pathfinder.mapDerma.window ) and DV2P.pathfinder.debug then
+			DV2P.pathfinder.mapDerma.window:Remove()
 		end
+
+		if IsValid( DV2P.pathfinder.mapDerma.window ) then return end
 	
 		local map_w, map_h = MAP_Frame:GetSize()
 		
@@ -649,7 +648,5 @@ DV2P.OFF.AddFunction( "Post_OpenMap", "MapPathfindPanel", function()
 		function window:Paint( w, h )
 			DrawDV2Button( 0, 0, w - 1, h - 1, 12, MAIN_GUICOLOR, MAIN_BLACKCOLOR )
 		end
-		
-		DV2P.pathfinder.vguiInitialized = true
 	end, function( err ) print( err ) end )
 end )

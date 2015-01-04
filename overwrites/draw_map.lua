@@ -1,8 +1,11 @@
 DV2P.Map = DV2P.Map or {}
+DV2P.Map.debug = false
 
-if IsValid( MAP_Frame ) then
-	MAP_Frame:Remove()
-	MAP_Frame = nil
+if DV2P.Map.debug then
+	if IsValid( MAP_Frame ) then
+		MAP_Frame:Remove()
+		MAP_Frame = nil
+	end
 end
 
 local Mate = Material("devinity2/hud/board.png")
