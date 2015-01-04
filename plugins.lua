@@ -161,6 +161,7 @@ function DV2P.OpenPluginMenu()
 	if DV2P.PluginMenu.debug and IsValid(DV2P.PluginMenu.window) then
 		DV2P.PluginMenu.window:Remove()
 		DV2P.PluginMenu.window = nil
+		DV2P.PluginMenu.Opened = nil
 	end
 
 	if IsValid( DV2P.PluginMenu.window ) then
