@@ -4,13 +4,13 @@ DV2P.Plugins = DV2P.Plugins or {}
 DV2P.PluginFiles = DV2P.PluginFiles or {}
 DV2P.PluginMenu = DV2P.PluginMenu or {}
 DV2P.PluginMenu.Selected = DV2P.PluginMenu.Selected or nil
+DV2P.PluginMenu.debug = false
 
 local pluginMeta = {
 	Description = "None",
 	_pnlW = 236,
 	_pnlH = 370,
-	_pnlDur = 0.5,
-	derma = {}
+	_pnlDur = 0.5
 }
 
 pluginMeta.__index = pluginMeta
@@ -103,6 +103,7 @@ function DV2P.SetupPluginPanel( name )
 
 	if plugin.PanelSetup then
 		//plugin._settingUp = true
+		plugin.derma = plugin.derma or {}
 		plugin.derma.container = panel
 		plugin:PanelSetup( panel )
 		//plugin._settingUp = false
@@ -144,9 +145,14 @@ function DV2P.OpenPluginPanel( name, resizeInstant )
 end
 
 function DV2P.OpenPluginMenu()
-	if IsValid(DV2P.PluginMenu.window) then
+	if DV2P.PluginMenu.debug and IsValid(DV2P.PluginMenu.window) then
 		DV2P.PluginMenu.window:Remove()
 		DV2P.PluginMenu.window = nil
+	end
+
+	if IsValid( DV2P.PluginMenu.window ) then
+		DV2P.PluginMenu.window:SetVisible( true )
+		return
 	end
 	
 	local window = vgui.Create( "DVFrame" )
@@ -208,6 +214,7 @@ function DV2P.OpenPluginMenu()
 	local n = 0
 	for name, plugin in pairs( DV2P.Plugins ) do
 		local desc = plugin.Description
+		if not plugin.PanelSetup then continue end
 
 		local btnText = name
 		surface.SetFont( "DVTextSmall" )
@@ -260,6 +267,8 @@ function DV2P.OpenPluginMenu()
 		local selectedPlugin = DV2P.PluginMenu.Selected
 		
 		for name, plugin in pairs( DV2P.Plugins ) do
+			if not plugin.PanelSetup then continue end
+			
 			local panel = DV2P.PluginMenu[ "plugin_" .. name .. "_panel" ]
 			
 			if not IsValid( panel ) then return end
