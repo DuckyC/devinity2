@@ -95,7 +95,7 @@ function PLUGIN:PanelSetup( container )
 	local btnClear = vgui.Create( "DVButton", container )
 	btnClear:SetText( "Clear" )
 	btnClear.DoClick = function( pnl, w, h )
-		self:AddID()
+		self:ClearIDs()
 	end
 	self.derma.btnClear = btnClear
 
