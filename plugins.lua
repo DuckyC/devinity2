@@ -4,13 +4,15 @@ DV2P.Plugins = DV2P.Plugins or {}
 DV2P.PluginFiles = DV2P.PluginFiles or {}
 DV2P.PluginMenu = DV2P.PluginMenu or {}
 DV2P.PluginMenu.Selected = DV2P.PluginMenu.Selected or nil
+DV2P.PluginMenu.Opened = DV2P.PluginMenu.Opened or nil
 DV2P.PluginMenu.debug = false
 
 local pluginMeta = {
 	Description = "None",
 	_pnlW = 236,
 	_pnlH = 370,
-	_pnlDur = 0.5
+	_pnlDur = 0.5,
+	_isSetUp = false
 }
 
 pluginMeta.__index = pluginMeta
@@ -19,6 +21,12 @@ function pluginMeta:SetPanelSize( w, h, dur )
 	self._pnlW = w
 	self._pnlH = h
 	self._pnlDur = dur
+
+	if self._isSetUp then
+		if DV2P.PluginMenu.Selected == self.Name then
+			DV2P.ResizePluginPanel( self._pnlW, self._pnlH, self._pnlDur )
+		end
+	end
 end
 
 function pluginMeta:Think() end
@@ -105,7 +113,9 @@ function DV2P.SetupPluginPanel( name )
 		//plugin._settingUp = true
 		plugin.derma = plugin.derma or {}
 		plugin.derma.container = panel
+		plugin._isSetUp = false
 		plugin:PanelSetup( panel )
+		plugin._isSetUp = true
 		//plugin._settingUp = false
 	end
 
@@ -113,6 +123,8 @@ function DV2P.SetupPluginPanel( name )
 end
 
 function DV2P.OpenPluginPanel( name, resizeInstant )
+	if DV2P.PluginMenu.Opened == name then return end
+
 	local oldSel = DV2P.PluginMenu.Selected
 	if oldSel ~= nil then
 		local oldPanel = DV2P.PluginMenu[ "plugin_" .. oldSel .. "_panel" ]
@@ -142,6 +154,7 @@ function DV2P.OpenPluginPanel( name, resizeInstant )
 			end
 		end
 	end
+	DV2P.PluginMenu.Opened = sel
 end
 
 function DV2P.OpenPluginMenu()
