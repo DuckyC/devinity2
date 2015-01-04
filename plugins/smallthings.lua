@@ -14,3 +14,11 @@ cvars.AddChangeCallback( "dv2_show_effects", function()
 end)
 
 concommand.Add("dv2_enter", DV2P.EnterGamemode)
+
+local AutoRejoin = CreateClientConVar( "dv2_autorejoin", "0" )
+hook.Add("Think", "AutoNoDead", function()
+	local lp = LocalPlayer()
+	if ( AutoRejoin:GetInt() == 1 and lp:IsPlayerDead() and lp.DeathTimer) then
+		lp:ConCommand("retry\n")
+	end
+end)
