@@ -33,5 +33,5 @@ concommand.Add("dv2_vcraft", function(_,_,ores)
 	end
 	local Data = CraftItem(CraftingList,crafting)
 	print(Data.Type.." "..Data.Class.." "..Data.Rarity.Name)
-	print("Tech: "..Data.Tech,"DMG: "..Data.Dmg, "CD: "..Data.CD, "DPS: "..(Data.Dmg / Data.CD))
+	print("Tech: "..Data.Tech,"DMG: "..Data.Dmg, "CD: "..Data.CD, "DPS: "..(Data.Dmg / Data.CD), "Price: "..Data.Price)
 end)
