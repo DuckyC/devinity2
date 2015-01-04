@@ -1,12 +1,7 @@
-DV2P.Map = DV2P.Map or {}
+DV2P.Map = DV2P.Map or {
+	initial = true
+}
 DV2P.Map.debug = false
-
-if DV2P.Map.debug then
-	if IsValid( MAP_Frame ) then
-		MAP_Frame:Remove()
-		MAP_Frame = nil
-	end
-end
 
 local Mate = Material("devinity2/hud/board.png")
 
@@ -200,6 +195,14 @@ function IsMapOpen()
 end
 
 function OpenMap()
+	if DV2P.Map.initial or DV2P.Map.debug then
+		if IsValid( MAP_Frame ) then
+			MAP_Frame:Remove()
+			MAP_Frame = nil
+			DV2P.Map.initial = false
+		end
+	end
+
 	DV2P.OFF.RunFunction( "Pre_OpenMap" )
 	if (IsValid(MAP_Frame) and MAP_Frame:IsVisible()) then return end
 	
