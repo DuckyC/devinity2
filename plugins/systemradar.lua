@@ -105,7 +105,7 @@ DV2P.OFF.AddFunction( "Post_MAP_Frame_Paint", "SystemRadarPaint", function( pnl,
 
 				if id == 0 then
 					local sPos = { x = 10, y = ScrH() / 2 - 14 * 5 }
-					DrawOutlinedRect( sPos.x - 3, sPos.y - 3, 6, 6, color )
+					DrawOutlinedRect( sPos.x - 3, sPos.y - 3 + 14 * counts[ id ], 6, 6, color )
 					DrawText( v:Nick(), font, sPos.x + 5, sPos.y + 14 * counts[ id ], color )
 
 					counts[ id ] = counts[ id ] + 1
