@@ -570,6 +570,10 @@ DV2P.OFF.AddFunction( "Post_OpenMap", "MapPathfindPanel", function()
 			self.Menu:SetMaxHeight( (ScrH() - y) - 10 )
 		end
 		
+		function systemInput:OnMousePressed()
+			self:OpenAutoComplete( self:GetAutoComplete( self:GetText() ) )
+		end
+
 		function warpBtn:DoClick()
 			if (DV2P.pathfinder:IsInProgress()) then
 				DV2P.pathfinder:FinishPath()
