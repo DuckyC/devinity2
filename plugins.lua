@@ -13,10 +13,9 @@ local pluginMeta = {
 	_pnlH = 370,
 	_pnlDur = 0.5,
 	_isSetUp = false,
-	_initialized = false
+	_initialized = false,
+	PData = {}
 }
-
-pluginMeta.__index = pluginMeta
 
 function pluginMeta:IsInitialized()
 	return self._initialized
@@ -65,7 +64,7 @@ end
 function DV2P.AddPlugin( plugin, file )
 	if not plugin or not plugin.Name then return end
 
-	plugin = setmetatable( plugin, pluginMeta )
+	plugin = setmetatable( plugin, { __index = pluginMeta } )
 	plugin.derma = plugin.derma or {}
 
 	DV2P.Plugins[ plugin.Name ] = plugin
@@ -96,7 +95,10 @@ function DV2P.ResizePluginPanel( w, h, dur )
 	if dur == 0 then
 		window:SetSize( w, h )
 	else
-		window:SizeTo( w, h, dur, 0 )
+		DV2P.PluginMenu._resizing = true
+		window:SizeTo( w, h, dur, 0, -1, function( animData, pnl )
+			DV2P.PluginMenu._resizing = false
+		end )
 	end
 end
 
@@ -129,6 +131,7 @@ end
 
 function DV2P.OpenPluginPanel( name, resizeInstant )
 	if DV2P.PluginMenu.Opened == name then return end
+	if DV2P.PluginMenu._resizing then return end
 
 	local oldSel = DV2P.PluginMenu.Selected
 	if oldSel ~= nil then
