@@ -2,6 +2,9 @@ PLUGIN.Name = "Blacklist"
 PLUGIN.Description = "Marks blacklisted people as enemies and syncs with a webservice."
 PLUGIN._blacklist = PLUGIN._blacklist or {}
 
+local lp = LocalPlayer()
+local MatTarget = surface.GetTextureID("devinity2/hud/target_white")
+
 function PLUGIN:PanelSetExpanded( expanded )
 	self._expanded = expanded
 	self:PanelUpdateSize()
@@ -76,11 +79,14 @@ function PLUGIN:PanelPopulateBlacklist()
 		btnRemove._data = data
 		btnRemove.DoClick = function( pnl )
 			local plugin = self
-			self:RemovePlayer( steamID, function( statusCode, err, tbl )
-				if statusCode == 200 then
-					plugin._blacklist = tbl
-					plugin:PanelPopulateBlacklist()
-				end
+			local query = DV2P.Derma_Query( "Are you sure you want to remove this player from the blacklist?", "Confirmation", "Remove", function()
+				self:RemovePlayer( steamID, function( statusCode, err, tbl )
+					if statusCode == 200 then
+						plugin._blacklist = tbl
+						plugin:PanelPopulateBlacklist()
+					end
+				end )
+			end, "Cancel", function()
 			end )
 		end
 
@@ -172,7 +178,7 @@ function PLUGIN:PanelSetup( container )
 	self.derma.pnlPlayers = pnlPlayers
 
 	if self:PanelGetExpanded() then self:PanelPopulatePlayers() end
-	self:PanelPopulateBlacklist()
+	self:FetchAndSetBlacklist( function() self:PanelPopulateBlacklist() end )
 end
 
 function PLUGIN:PanelPerformLayout( container, w, h )
@@ -309,4 +315,99 @@ function PLUGIN:FetchAndSetBlacklist( callback )
 	end )
 end
 
---PLUGIN:UpdatePlayer( "STEAM_0:1:5514303", "Lord Ezrik the Great" )
+
+function PLUGIN:HUDPaint()
+	if not lp then return end
+
+	local blacklist = self._blacklist
+	if not blacklist.players then return end
+	local w, h = ScrW(), ScrH()
+
+	local players = blacklist.players
+	for k, v in pairs( player.GetAllInRegion( lp:GetRegion() ) ) do
+		if not IsValid( v ) then return end
+		if not players[ v:SteamID() ] then continue end
+
+		if v.PlayerPos then --and v ~= lp then
+			local pos 	= ( v.PlayerPos - lp.PlayerPos ) + ( v.FloatPos - lp.FloatPos )
+			local dis	= pos:Length()
+			
+			if (dis < MAIN_VISIBLE_RANGE) then
+				local sPos 	= pos:ToScreen()
+				
+				if sPos.visible then
+					local size = 32 + math.cos( UnPredictedCurTime() * 5 ) * 10
+					local col = Color( 255, 0, 0, 200 )
+
+					DrawTexturedRectRotated( sPos.x, sPos.y, size,
+						size, col, MatTarget, UnPredictedCurTime() * -300 )
+					DrawTexturedRectRotated( sPos.x, sPos.y, size + 40,
+						size + 40, col, MatTarget, UnPredictedCurTime() * 300 )
+
+					DrawRect( sPos.x - 8, sPos.y, 16, 1, col )
+					DrawRect( sPos.x, sPos.y - 8, 1, 16, col )
+				end
+			end
+		end
+	end
+end
+
+DV2P.OFF.AddFunction( "Post_MAP_Frame_Paint", "Blacklist", function( pnl, w, h )
+	if not lp then return end
+
+	xpcall( function()
+		local plugin = DV2P.GetPlugin( "Blacklist" )
+		local blacklist = plugin._blacklist
+		if not blacklist.players then return end
+
+		local col = Color( 255, 0, 0, 200 )
+
+		if not DV2P.IsMapScreenLocal() then
+			local Scale = MAIN_MAP_SIZE/2500
+
+			local players = player.GetAll()
+			for k, v in pairs( players ) do
+				if not IsValid( v ) then continue end
+				if v == lp then continue end
+				if not blacklist.players[ v:SteamID() ] then continue end
+
+				local size = ( 12 + math.cos( UnPredictedCurTime() * 5 ) * 4 ) * ( 1 - math.Clamp( ( DV2P.Map.Dist ) / 2000, 0, 0.8 ) ) * 7
+
+				local reg, id = v:GetRegion()
+				local sys = GAMEMODE.SolarSystems[ id ]
+				if not sys then continue end
+
+				local vRealPos = sys.Pos / Scale 
+				local sPos = DV2P.Map.ToScreen( vRealPos )
+
+				DrawTexturedRectRotated( sPos.x, sPos.y, size,
+					size, col, MatTarget, UnPredictedCurTime() * -300 )
+
+				DrawTexturedRectRotated( sPos.x, sPos.y, size * 1.8,
+					size * 1.8, col, MatTarget, UnPredictedCurTime() * 300 )
+			end
+		else
+			local reg, id = lp:GetRegion()
+			local players = player.GetAllInRegion( reg, lp )
+			local Scale = MAIN_SOLARSYSTEM_RADIUS/100
+
+			for k, v in pairs( players ) do
+				if not IsValid( v ) then continue end
+				if not blacklist.players[ v:SteamID() ] then continue end
+
+				local size = ( 12 + math.cos( UnPredictedCurTime() * 5 ) * 4 ) * ( 1 - math.Clamp( ( DV2P.Map.Dist ) / 400, 0, 0.8 ) ) * 4
+
+				local Reg,ID = v:GetRegion()
+
+				local sPos = DV2P.Map.ToScreen((v.PlayerPos-GAMEMODE.SolarSystems[ID].Pos)/Scale+v.FloatPos/Scale)
+
+				DrawTexturedRectRotated( sPos.x, sPos.y, size,
+					size, col, MatTarget, UnPredictedCurTime() * -300 )
+
+				DrawTexturedRectRotated( sPos.x, sPos.y, size * 1.8,
+					size * 1.8, col, MatTarget, UnPredictedCurTime() * 300 )
+
+			end
+		end
+	end, function( err ) print( err ) end )
+end )
