@@ -152,6 +152,10 @@ function DV2P.OpenPluginPanel( name, resizeInstant )
 			else
 				DV2P.ResizePluginPanel( plugin._pnlW, plugin._pnlH, plugin._pnlDur )
 			end
+
+			if plugin.OnPanelOpened then
+				plugin:OnPanelOpened()
+			end
 		end
 	end
 	DV2P.PluginMenu.Opened = sel
