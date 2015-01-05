@@ -7,6 +7,8 @@ DV2P.PluginMenu.Selected = DV2P.PluginMenu.Selected or nil
 DV2P.PluginMenu.Opened = DV2P.PluginMenu.Opened or nil
 DV2P.PluginMenu.debug = false
 
+local btnW, btnH = 150, 40
+
 local pluginMeta = {
 	Description = "None",
 	_pnlW = 236,
@@ -87,7 +89,7 @@ function DV2P.ResizePluginPanel( w, h, dur )
 	local dH = pluginDesc:GetTall()
 	local off = nH + dH
 
-	local w = 108 + 4 + 4 + 4 + 4 + w
+	local w = btnW + 8 + 4 + 4 + 4 + 4 + w
 	local h = 22 + 4 + 4 + off + 4 + h
 
 
@@ -199,15 +201,12 @@ function DV2P.OpenPluginMenu()
 	DV2P.PluginMenu.window = window
 
 	local pluginList = vgui.Create( "DScrollPanel", window )
-	pluginList:SetPos( 4, 22 + 4)
 
 	DV2P.PaintVBar( pluginList.VBar )
 	DV2P.PluginMenu.pluginList = pluginList
 
 
 	local pluginPanel = vgui.Create( "DPanel", window )
-	pluginPanel:SetPos( 108 + 4 + 4 + 4, 22 + 4 )
-	pluginPanel:SetSize( window:GetWide() - 108 - 4 - 4 - 4 - 4, window:GetTall() - 22 - 8)
 	pluginPanel.Paint = function( pnl, w, h ) end
 	DV2P.PluginMenu.pluginPanel = pluginPanel
 
@@ -234,8 +233,6 @@ function DV2P.OpenPluginMenu()
 
 		DrawText( pnl.Text, "DVTextSmall", w / 2, h / 2 , MAIN_TEXTCOLOR, TEXT_ALIGN_CENTER )
 	end
-
-	local btnW, btnH = 100, 40
 
 	local n = 0
 	for name, plugin in pairs( DV2P.Plugins ) do
@@ -276,9 +273,11 @@ function DV2P.OpenPluginMenu()
 	end
 
 	function window:PerformLayout( w, h )
-		pluginList:SetSize( 108 + 4, h - 22 - 8 )
+		pluginList:SetPos( 4, 22 + 4)
+		pluginList:SetSize( btnW + 8 + 4, h - 22 - 8 )
 
-		pluginPanel:SetSize( w - 108 - 4 - 4 - 4 - 4, h - 22 - 8 )
+		pluginPanel:SetPos( btnW + 8 + 4, 22 + 4 )
+		pluginPanel:SetSize( w - btnW - 8 - 4, h - 22 - 8 )
 		local pW, pH = pluginPanel:GetSize()
 
 		pluginName:SetPos( 0, 0 )
