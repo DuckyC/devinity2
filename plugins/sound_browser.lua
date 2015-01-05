@@ -16,6 +16,16 @@ function PLUGIN:PanelSetup( container )
 		DrawRect( 0, 0, w, h, MAIN_BLACKCOLOR )
 		DrawOutlinedRect( 0, 0, w, h, MAIN_GUICOLOR )
 	end
+	tree.Think = function( pnl )
+		if input.IsKeyDown(KEY_SPACE) then
+			if not keyDown then
+				self.derma.btnPlay.DoClick()
+				keyDown = true
+			end
+		else
+			keyDown = false
+		end
+	end
 	DV2P.PaintVBar( tree.VBar )
 	self.derma.tree = tree
 
@@ -152,15 +162,4 @@ function PLUGIN:PanelPerformLayout( container, w, h )
 
 	self.derma.btnCopy:SetPos( w - sW - 10, h - 20 - 20 )
 	self.derma.btnCopy:SetSize( sW, 30 )
-end
-
-function PLUGIN:Think()
-	if input.IsKeyDown(KEY_SPACE) then
-		if not keyDown then
-			self.derma.btnPlay.DoClick()
-			keyDown = true
-		end
-	else
-		keyDown = false
-	end
 end
