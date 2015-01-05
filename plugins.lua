@@ -13,10 +13,14 @@ local pluginMeta = {
 	_pnlH = 370,
 	_pnlDur = 0.5,
 	_isSetUp = false,
-	derma = {}
+	_initialized = false
 }
 
 pluginMeta.__index = pluginMeta
+
+function pluginMeta:IsInitialized()
+	return self._initialized
+end
 
 function pluginMeta:SetPanelSize( w, h, dur )
 	self._pnlW = w
@@ -62,6 +66,7 @@ function DV2P.AddPlugin( plugin, file )
 	if not plugin or not plugin.Name then return end
 
 	plugin = setmetatable( plugin, pluginMeta )
+	plugin.derma = plugin.derma or {}
 
 	DV2P.Plugins[ plugin.Name ] = plugin
 
@@ -112,7 +117,6 @@ function DV2P.SetupPluginPanel( name )
 
 	if plugin.PanelSetup then
 		//plugin._settingUp = true
-		plugin.derma = plugin.derma or {}
 		plugin.derma.container = panel
 		plugin._isSetUp = false
 		plugin:PanelSetup( panel )
@@ -263,6 +267,7 @@ function DV2P.OpenPluginMenu()
 		DV2P.PluginMenu[ "plugin_" .. name .. "_button" ] = button
 
 		DV2P.SetupPluginPanel( name )
+		plugin._initialized = true
 
 		n = n + 1
 	end

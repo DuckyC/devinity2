@@ -26,11 +26,17 @@ function PLUGIN:PanelUpdateSize()
 end
 
 function PLUGIN:PanelClearPlayers()
+	if not self:IsInitialized() then return end
+	
+	if not IsValid( self.derma.pnlPlayers ) then return end
+
 	self.derma.pnlPlayers:Clear()
 	self.derma.container:InvalidateLayout()
 end
 
 function PLUGIN:PanelPopulatePlayers()
+	if not self:IsInitialized() then return end
+	
 	self:PanelClearPlayers()
 
 	local pnlPlayers = self.derma.pnlPlayers
@@ -56,12 +62,19 @@ function PLUGIN:PanelPopulatePlayers()
 end
 
 function PLUGIN:PanelClearBlacklist()
+	if not self:IsInitialized() then return end
+	
+	if not IsValid( self.derma.pnlBlacklist ) then return  end
+
 	self.derma.pnlBlacklist:Clear()
 	self.derma.container:InvalidateLayout()
 end
 
 function PLUGIN:PanelPopulateBlacklist()
+	if not self:IsInitialized() then return end
+	
 	self:PanelClearBlacklist()
+	self.derma.blacklist = self.derma.blacklist or {}
 
 	local pnlBlacklist = self.derma.pnlBlacklist
 	local blacklist = self._blacklist
@@ -103,6 +116,8 @@ function PLUGIN:PanelPopulateBlacklist()
 end
 
 function PLUGIN:PanelRefreshBlacklist()
+	if not self:IsInitialized() then return end
+
 	self:FetchAndSetBlacklist( function() self:PanelPopulateBlacklist() end )
 end
 
@@ -172,7 +187,6 @@ function PLUGIN:PanelSetup( container )
 		end )
 	end
 	self.derma.btnAdd = btnAdd
-
 
 	-- Expanded
 
@@ -322,12 +336,52 @@ function PLUGIN:FetchAndSetBlacklist( callback )
 	end )
 end
 
-
 function PLUGIN:Think()
 	if CurTime() > self.refreshTime then
 		self:PanelRefreshBlacklist()
 
 		self.refreshTime = CurTime() + self.refreshInterval
+	end
+
+	local blacklist = self._blacklist
+	if not blacklist.players then return end
+
+	self.inArea = self.inArea or {}
+	local inRange = {}
+	for k, v in pairs( player.GetAllInRegion( lp:GetRegion() ) ) do
+		if not IsValid( v ) then return end
+		if not blacklist.players[ v:SteamID() ] then continue end
+
+		if v.PlayerPos then --and v ~= lp then
+			local pos 	= ( v.PlayerPos - lp.PlayerPos ) + ( v.FloatPos - lp.FloatPos )
+			local dis	= pos:Length()
+			
+			if (dis < MAIN_VISIBLE_RANGE) then
+				if not self.inArea[ v:SteamID() ] then
+					self.inArea[ v:SteamID() ] = v
+
+					sound.PlayFile( "sound/ambient/alarms/apc_alarm_loop1.wav", "noplay", function( snd, errID, err )
+						snd:EnableLooping( false )
+						snd:Play()
+						
+						for i = 1, 2 do
+							timer.Simple( i * 2, function()
+								snd:SetTime( 0 )
+								snd:Play()
+							end )
+						end
+					end )
+				end
+				inRange[ v:SteamID() ] = true
+			end
+		end
+	end
+
+	for k, v in pairs( self.inArea ) do
+		if not IsValid( v ) then return end
+		if not inRange[ v:SteamID() ] then
+			self.inArea[ v:SteamID() ] = nil
+		end
 	end
 end
 
