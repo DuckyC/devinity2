@@ -26,7 +26,6 @@ function PLUGIN:PanelSetup( container )
 
 		local tempid = id
 		checkBox.OnChange = function( pnl, bVal )
-			print( tempid )
 			self._soundstates[ tempid ].Checked = bVal
 		end
 
