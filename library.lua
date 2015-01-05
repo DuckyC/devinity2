@@ -186,3 +186,14 @@ function DV2P.PaintVBar( VBar )
 		end
 	end
 end
+
+function DV2P.GetPlayerBySteamID( steamid )
+	local players = player.GetAll()
+	for k, v in pairs( players ) do
+		if IsValid( v ) then
+			if v:SteamID() == steamid then
+				return v
+			end
+		end
+	end
+end
