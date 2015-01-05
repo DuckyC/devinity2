@@ -5,6 +5,8 @@ PLUGIN._blacklist = PLUGIN._blacklist or {}
 PLUGIN.refreshInterval = 60 * 5
 PLUGIN.refreshTime = 0
 
+PLUGIN._playAlarm = ( PLUGIN._playAlarm == nil ) and true or PLUGIN._playAlarm
+
 local lp = LocalPlayer()
 local MatTarget = surface.GetTextureID("devinity2/hud/target_white")
 
@@ -72,7 +74,7 @@ end
 
 function PLUGIN:PanelPopulateBlacklist()
 	if not self:IsInitialized() then return end
-	
+
 	self:PanelClearBlacklist()
 	self.derma.blacklist = self.derma.blacklist or {}
 
@@ -122,11 +124,21 @@ function PLUGIN:PanelRefreshBlacklist()
 end
 
 function PLUGIN:PanelSetup( container )
+	PrintTable( self.PData )
 	self._expanded = self._expanded or false
 	self:PanelUpdateSize()
 
 	self.derma.blacklist = self.derma.blacklist or {}
 	self.derma.players = self.derma.players or {}
+
+	print( self._playAlarm )
+
+	local chkBlacklist = vgui.Create( "DCheckBoxLabel", container )
+	chkBlacklist:SetText( "Play alarm when player is in range" )
+	chkBlacklist:SizeToContents()
+	chkBlacklist:SetChecked( self._playAlarm )
+	chkBlacklist.OnChange = function( pnl, bVal ) self._playAlarm = bVal end
+	self.derma.chkBlacklist = chkBlacklist
 
 	local lblBlacklist = vgui.Create( "DLabel", container )
 	lblBlacklist:SetText( "Blacklist" )
@@ -204,13 +216,15 @@ end
 
 function PLUGIN:PanelPerformLayout( container, w, h )
 	local _w = math.min( w, 300 )
-	self.derma.lblBlacklist:SetPos( 20, 10 )
+	self.derma.chkBlacklist:SetPos( 20, 10 )
 
-	self.derma.btnBlacklistRefresh:SetPos( _w - 80 - 10, 10 )
+	self.derma.lblBlacklist:SetPos( 20, 10 + 20 + 10 )
+
+	self.derma.btnBlacklistRefresh:SetPos( _w - 80 - 10, 30 )
 	self.derma.btnBlacklistRefresh:SetSize( 80, 20 )
 
-	self.derma.pnlBlacklist:SetPos( 10, 30 )
-	self.derma.pnlBlacklist:SetSize( _w - 20, h - 30 - 10 - 30 - 4 - 20 - 4 - 16 - 20 - 4 )
+	self.derma.pnlBlacklist:SetPos( 10, 30 + 20 + 4 )
+	self.derma.pnlBlacklist:SetSize( _w - 20, h - 30 - 10 - 30 - 4 - 20 - 4 - 16 - 20 - 4 - 20 - 4 )
 
 	self.derma.lblSteamID:SetPos( 20, h - 30 - 10 - 20 - 4 - 20 - 20 - 4 )
 
@@ -360,17 +374,19 @@ function PLUGIN:Think()
 				if not self.inArea[ v:SteamID() ] then
 					self.inArea[ v:SteamID() ] = v
 
-					sound.PlayFile( "sound/ambient/alarms/apc_alarm_loop1.wav", "noplay", function( snd, errID, err )
-						snd:EnableLooping( false )
-						snd:Play()
-						
-						for i = 1, 2 do
-							timer.Simple( i * 2, function()
-								snd:SetTime( 0 )
-								snd:Play()
-							end )
-						end
-					end )
+					if self._playAlarm then
+						sound.PlayFile( "sound/ambient/alarms/apc_alarm_loop1.wav", "noplay", function( snd, errID, err )
+							snd:EnableLooping( false )
+							snd:Play()
+							
+							for i = 1, 2 do
+								timer.Simple( i * 2, function()
+									snd:SetTime( 0 )
+									snd:Play()
+								end )
+							end
+						end )
+					end
 				end
 				inRange[ v:SteamID() ] = true
 			end
