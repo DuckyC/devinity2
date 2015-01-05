@@ -2,6 +2,9 @@ PLUGIN.Name = "Blacklist"
 PLUGIN.Description = "Marks blacklisted people as enemies and syncs with a webservice."
 PLUGIN._blacklist = PLUGIN._blacklist or {}
 
+PLUGIN.refreshInterval = 60 * 5
+PLUGIN.refreshTime = 0
+
 local lp = LocalPlayer()
 local MatTarget = surface.GetTextureID("devinity2/hud/target_white")
 
@@ -99,6 +102,10 @@ function PLUGIN:PanelPopulateBlacklist()
 	self.derma.container:InvalidateLayout()
 end
 
+function PLUGIN:PanelRefreshBlacklist()
+	self:FetchAndSetBlacklist( function() self:PanelPopulateBlacklist() end )
+end
+
 function PLUGIN:PanelSetup( container )
 	self._expanded = self._expanded or false
 	self:PanelUpdateSize()
@@ -114,7 +121,7 @@ function PLUGIN:PanelSetup( container )
 	local btnBlacklistRefresh = vgui.Create( "DVButton", container )
 	btnBlacklistRefresh:SetText( "Refresh" )
 	btnBlacklistRefresh.DoClick = function( pnl )
-		self:FetchAndSetBlacklist( function() self:PanelPopulateBlacklist() end )
+		self:PanelRefreshBlacklist()
 	end
 	self.derma.btnBlacklistRefresh = btnBlacklistRefresh
 
@@ -178,7 +185,7 @@ function PLUGIN:PanelSetup( container )
 	self.derma.pnlPlayers = pnlPlayers
 
 	if self:PanelGetExpanded() then self:PanelPopulatePlayers() end
-	self:FetchAndSetBlacklist( function() self:PanelPopulateBlacklist() end )
+	self:PanelRefreshBlacklist()
 end
 
 function PLUGIN:PanelPerformLayout( container, w, h )
@@ -315,6 +322,14 @@ function PLUGIN:FetchAndSetBlacklist( callback )
 	end )
 end
 
+
+function PLUGIN:Think()
+	if CurTime() > self.refreshTime then
+		self:PanelRefreshBlacklist()
+
+		self.refreshTime = CurTime() + self.refreshInterval
+	end
+end
 
 function PLUGIN:HUDPaint()
 	if not lp then return end
