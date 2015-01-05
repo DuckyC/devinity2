@@ -124,14 +124,11 @@ function PLUGIN:PanelRefreshBlacklist()
 end
 
 function PLUGIN:PanelSetup( container )
-	PrintTable( self.PData )
 	self._expanded = self._expanded or false
 	self:PanelUpdateSize()
 
 	self.derma.blacklist = self.derma.blacklist or {}
 	self.derma.players = self.derma.players or {}
-
-	print( self._playAlarm )
 
 	local chkBlacklist = vgui.Create( "DCheckBoxLabel", container )
 	chkBlacklist:SetText( "Play alarm when player is in range" )
