@@ -10,7 +10,8 @@ function DV2P.OFF.RunFunction( name, ... )
 
 	for k, v in pairs( functions ) do
 		if v and type( v ) == "function" then
-			v( ... )
+			local res = v( ... )
+			if res ~= nil then return res end
 		end
 	end
 end
