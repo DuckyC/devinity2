@@ -12,7 +12,8 @@ local pluginMeta = {
 	_pnlW = 236,
 	_pnlH = 370,
 	_pnlDur = 0.5,
-	_isSetUp = false
+	_isSetUp = false,
+	derma = {}
 }
 
 pluginMeta.__index = pluginMeta
