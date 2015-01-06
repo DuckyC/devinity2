@@ -38,7 +38,7 @@ hook.Add("HUDPaint", "TurretButtons", function()
 		DV2P.FireAll( nil, true )
 	end)
 
-	AddButton(x, y, "Unequip All", function() for i=1,64 do RequestUnequipItem(i) end end)
+	AddButton(x, y, "Unequip All", function() for i=0,64 do RequestUnequipItem(i) end end)
 	AddButton(x+18, y, "Stop all", function() DV2P.FireAll( nil, false ) end)
 	
 end)

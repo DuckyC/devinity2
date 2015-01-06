@@ -97,11 +97,11 @@ function DrawInventory()
 								local weps = 0
 								local slot = 0
 								repeat
-									slot = slot + 1
 									if not equipment[slot] then
 										RequestEquipItem(slot,menu.ID)
 										weps = weps + 1
 									end
+									slot = slot + 1
 								until(weps >= lp.Inventory[menu.ID].Quantity or slot >= 64)
 							end ):SetColor(MAIN_TEXTCOLOR)
 						end

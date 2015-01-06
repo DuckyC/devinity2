@@ -22,12 +22,16 @@ DV2P.OFF.AddFunction( "Post_DrawTurretSlots", "DrawAllSlots", function( Car )
 		local yOff = 0
 		local xOff = 0
 		local spacing = 30
-		for i = count + 1, 63 do
+		for j = 0, 63 - count do
+			local i = count + j
 			k = i - count
+		 	if j == 0 then i = 0 end
+
+
 			local rowW = math.floor( extraCount / 2 )
-			if k > math.ceil( extraCount / 2 ) then
+			/*if k > math.ceil( extraCount / 2 ) then
 				rowW = math.floor( extraCount / 2 ) - 1
-			end
+			end*/
 
 			local SlotPos = {
 				x = sw / 2 + xOff * spacing - rowW * ( spacing / 2),
@@ -38,7 +42,7 @@ DV2P.OFF.AddFunction( "Post_DrawTurretSlots", "DrawAllSlots", function( Car )
 
 			xOff = xOff + 1
 
-			if k % math.ceil( extraCount / 2 ) == 0 then
+			if ( k + 1 ) % math.ceil( extraCount / 2 ) == 0 then
 				yOff = yOff + 1
 				xOff = 0
 			end
