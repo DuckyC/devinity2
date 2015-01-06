@@ -22,11 +22,15 @@ DV2P.OFF.AddFunction( "Post_DrawTurretSlots", "DrawAllSlots", function( Car )
 		local yOff = 0
 		local xOff = 0
 		local spacing = 30
-		for i = count, 63 do
-			k = i - count + 1
+		for i = count + 1, 63 do
+			k = i - count
+			local rowW = math.floor( extraCount / 2 )
+			if k > math.ceil( extraCount / 2 ) then
+				rowW = math.floor( extraCount / 2 ) - 1
+			end
 
 			local SlotPos = {
-				x = sw / 2 + xOff * spacing - math.floor( extraCount / 2 ) * ( spacing / 2),
+				x = sw / 2 + xOff * spacing - rowW * ( spacing / 2),
 				y = sh - 38 + yOff * 24
 			}
 			local It = lp.Inventory[ Car ]
