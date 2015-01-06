@@ -113,6 +113,6 @@ concommand.Add( "dv2_craftingid_ores", function( ply, cmd, args )
 	if id == nil then return end
 		
 	local ids, total = DV2P.GetPlugin( "Item Generator" ):GetOresForCraftingID( id, num )
-	print( table.concat( ids, "," ) )
+	print( table.concat( ids, " " ) )
 	print( "Adds up to: " .. total )
 end )
