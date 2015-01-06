@@ -37,10 +37,12 @@ DV2P.OFF.AddFunction( "FireSlot_OnFire", "DamageFeed", function( from, target, t
 		if (target:GetShipData().Type == turret.Type) then Dmg = Dmg*5 end
 		Dmg = CalculateDamage(target, Dmg)
 
-		local P = DamageQueue[from.."_"..target]  or {Time = os.time(), Dmg = 0, Hits = 0, from = from, target = target}
+		local key = tostring(from).."_"..tostring(target)
+
+		local P = DamageQueue[key]  or {Time = os.time(), Dmg = 0, Hits = 0, from = from, target = target}
 		P.Dmg = P.Dmg + Dmg
 		P.Hits = P.Hits + 1
-		DamageQueue[from.."_"..target] = P
+		DamageQueue[key] = P
 	end
 end)
 
