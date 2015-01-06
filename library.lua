@@ -179,7 +179,6 @@ function DV2P.FireAll(Class, bool)
 
 			timer.Create( "DV2P_FireAll_" .. k .. tostring( bool ), 0.2 * i, 1, function()
 				ToggleFire( k, bool )
-				print( k, bool )
 			end )
 
 			i = i + 1
