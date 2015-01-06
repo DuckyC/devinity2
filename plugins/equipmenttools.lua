@@ -34,8 +34,11 @@ end
 hook.Add("HUDPaint", "TurretButtons", function()
 	local x,y 	= xh, SH-175
 
-	AddButton(x-18, y, "Fire all", function() for i=1,64 do ToggleFire(i,true) end end)
+	AddButton(x-18, y, "Fire all", function()
+		DV2P.FireAll( nil, true )
+	end)
+
 	AddButton(x, y, "Unequip All", function() for i=1,64 do RequestUnequipItem(i) end end)
-	AddButton(x+18, y, "Stop all", function() for i=1,64 do ToggleFire(i,false) end end)
+	AddButton(x+18, y, "Stop all", function() DV2P.FireAll( nil, false ) end)
 	
 end)

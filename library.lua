@@ -107,13 +107,89 @@ function DV2P.ClearTargets()
 	end
 end
 
+function DV2P.IsSlotFiring( k )
+	local slot = lp.ActiveSlots[ k ]
+	if not slot then return false end
+
+	return slot.Time + 1 > CurTime()
+end
+
+function DV2P.IsAnySlotTimersRunning( bool )
+	for k, v in pairs( lp.Equipment ) do
+		if timer.Exists( "DV2P_FireAll_" .. k .. tostring( bool ) ) then 
+			return true
+		end
+	end
+
+	return false
+end
+
+DV2P._fireAllData = DV2P._fireAllData or nil
+local lastCheck = 0
+hook.Add( "Think", "DV2P_FireAll_Check", function()
+	if CurTime() < lastCheck then return end
+	lastCheck = CurTime() + 1
+
+	if DV2P._fireAllData ~= nil then
+		if not lp.Equipment then return end
+		if DV2P.IsAnySlotTimersRunning( DV2P._fireAllData.bool ) then return end
+
+		local allSet = true
+		for k, v in pairs( lp.Equipment ) do
+			if DV2P.IsSlotFiring( k ) ~= DV2P._fireAllData.bool then
+				allSet = false
+				break
+			end
+		end
+
+		if allSet then
+			DV2P._fireAllData = nil
+		else
+			DV2P.FireAll( DV2P._fireAllData.class, DV2P._fireAllData.bool )
+		end
+	end
+end )
+
 function DV2P.FireAll(Class, bool)
 	if bool == nil then bool = true end
 	if not lp.Equipment then return end
-	
+
+	if DV2P.IsAnySlotTimersRunning( bool ) then return end
+
+	local i = 0
 	for k, v in pairs( lp.Equipment ) do 
-		if v.Class == Class then ToggleFire( k, bool ) end
+		if not Class or v.Class == Class then
+			if bool then
+				if timer.Exists( "DV2P_FireAll_" .. k .. tostring( false ) ) then
+					timer.Remove( "DV2P_FireAll_" .. k .. tostring( false ) )
+				end
+			else
+				if timer.Exists( "DV2P_FireAll_" .. k .. tostring( true ) ) then
+					timer.Remove( "DV2P_FireAll_" .. k .. tostring( true ) )
+				end
+			end
+
+			if timer.Exists( "DV2P_FireAll_" .. k .. tostring( bool ) ) then continue end
+			
+			if bool then
+				if DV2P.IsSlotFiring( k ) then continue end
+			else
+				if not DV2P.IsSlotFiring( k ) then continue end
+			end
+
+			timer.Create( "DV2P_FireAll_" .. k .. tostring( bool ), 0.2 * i, 1, function()
+				ToggleFire( k, bool )
+				print( k, bool )
+			end )
+
+			i = i + 1
+		end
 	end
+
+	DV2P._fireAllData = {
+		bool = bool,
+		class = Class,
+	}
 end
 
 function DV2P.GetNearestNPC(maxdistance)
