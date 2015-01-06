@@ -55,9 +55,10 @@ function PLUGIN:SetWarpDestination( pos, fpos )
 
 	PDist = PDist or 0
 	ADist = ADist or 0
+	/*
 	print( "Predicted Arrive dist: ", ADist, ADist + 999 )
 	print( "Predicted slowdown dist: ", SDist )
-	print( "Predicted dist: ", PDist, PDist + 999 )
+	print( "Predicted dist: ", PDist, PDist + 999 )*/
 	local p, fp = CleanupPos( pos, fpos + NormDir * ( PDist + 999 ) )
 
 	lp:SetWarpDestination( p, fp )
@@ -139,3 +140,7 @@ end )
 -- 103395333.55678	966.35
 
 
+DV2P.OFF.AddFunction( "DrawMapEnts_MenuAddOption", "ExtraWarpOptions", function( menu, v, Pos, Dis, SPos )
+	if (Dis > 20000) then menu:AddOption( "Pinpoint Warp to", function() lp:SetPinpointWarpDestination(v.Pos,v.FloatPos) end ):SetColor(MAIN_TEXTCOLOR) end
+	
+end)

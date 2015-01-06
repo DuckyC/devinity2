@@ -26,41 +26,33 @@ local function CalculateDamage(self, dmg)
 	return TDmg
 end
 
-local damage = {}
-local targets = {}
+local DamageQueue = {}
 DV2P.OFF.AddFunction( "FireSlot_OnFire", "DamageFeed", function( from, target, turret, slot )
-	if turret.Class == "Mining Laser" then return end
+	if turret.Class == "Mining Laser" or from.Pirate or from.Police then return end
+
 	local lp = LocalPlayer()
-	if target == lp or lp == from then
-		local Dmg = turret.Dmg
+	if lp == target or lp == from then 
 		if not target.GetShipData then return end
-		
+		local Dmg = turret.Dmg
 		if (target:GetShipData().Type == turret.Type) then Dmg = Dmg*5 end
 		Dmg = CalculateDamage(target, Dmg)
-		local parent = (lp == target and damage or targets)
-		local fromd = (lp == target and from or target)
-		local tbl = parent[fromd] or {Time = os.time(), TDmg = 0, Hits = 0}
-		tbl.TDmg = tbl.TDmg + Dmg
-		tbl.Hits = tbl.Hits + 1
-		parent[from] = tbl
+
+		local key = tostring(from).."_"..tostring(target)
+
+		local P = DamageQueue[key]  or {Time = os.time(), Dmg = 0, Hits = 0, from = from, target = target}
+		P.Dmg = P.Dmg + Dmg
+		P.Hits = P.Hits + 1
+		DamageQueue[key] = P
 	end
 end)
 
 hook.Add("Think", "DamageFeedNotes", function()
-	for k,v in pairs(damage) do
-		if v.Time+1 < os.time() then
-			if IsValid( k ) then
-				LocalPlayer():AddNote(k:GetName().." hit you for "..string.Comma(v.TDmg).." damage. ("..v.Hits.." hits)")
-			end
-			damage[k] = nil
-		end
-	end
-	for k,v in pairs(targets) do
-		if v.Time+1 < os.time() then
-			if IsValid( k ) then
-				LocalPlayer():AddNote("you hit "..k:GetName().." for "..string.Comma(v.TDmg).." damage. ("..v.Hits.." hits)")
-			end
-			targets[k] = nil
+	local lp = LocalPlayer()
+	for k,v in pairs(DamageQueue) do
+		if v.Time < os.time()  then
+			local Pre = (v.from == lp) and ("you hit "..(v.target.GetName and v.target:GetName() or "Pirate")) or ((v.from.GetName and v.from:GetName() or "Pirate").." hit you ")
+			lp:AddNote(Pre.." for "..string.Comma(v.Dmg).." damage. ("..v.Hits.." hits)")
+			DamageQueue[k] = nil
 		end
 	end
 end)

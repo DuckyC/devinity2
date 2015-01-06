@@ -56,7 +56,7 @@ end
 function DV2P.WarpToNearest(Class)
 	local nearest = DV2P.GetNearest(Class)
 	if nearest then
-		LocalPlayer():SetWarpDestination(nearest.Pos, nearest.FloatPos)
+		LocalPlayer():SetPinpointWarpDestination(nearest.Pos, nearest.FloatPos)
 	end
 end
 
@@ -65,14 +65,15 @@ function DV2P.IsInventoryFull()
 end
 
 function DV2P.CanDock(dock)
-	if (!IsValid(lp)) or (!lp:GetRegion() == "Space") or (!lp.PlayerPos or !lp.FloatPos) or lp:GetDocked() then return false end
+	if (!IsValid(lp)) or (!lp:GetRegion() == "Space") or (!lp.PlayerPos or !lp.FloatPos) then return false, false end
+	if lp:GetDocked() then return false, true end
 	for k,v in pairs(self.MapEnts) do
 		if (v.Class == "Station" and ((v.Pos-lp.PlayerPos)+(v.FloatPos-lp.FloatPos)):Length() < MAIN_DOCK_RANGE) then
 			if dock then lp:RequestDock(k) end
-			return true
+			return true, true
 		end
 	end
-	return false
+	return false, false
 end
 
 function DV2P.IsMoving()
@@ -85,13 +86,18 @@ function DV2P.IsWarping()
 	return lp.WarpDest ~= nil
 end
 
+function DV2P.DockFunction(func)
+	local CanDock, IsDocked = DV2P.CanDock(true)
+	if not CanDock and not IsDocked then return end
+	if not CanDock and IsDocked then func() end
+	if CanDock and IsDocked then timer.Simple(1, func) end
+end
+
 function DV2P.UnloadToBank()
-	if DV2P.CanDock(true) then return end
-	for i=1, MAIN_MAXIMUM_SLOTS do RequestAddBank(i) end
+	DV2P.DockFunction(function() for i=1, MAIN_MAXIMUM_SLOTS do RequestAddBank(i) end end)
 end
 function DV2P.SellEverything()
-	if DV2P.CanDock(true) then return end
-	for i=1, MAIN_MAXIMUM_SLOTS do RequestSellItem( i, 25000 ) end
+	DV2P.DockFunction(function() for i=1, MAIN_MAXIMUM_SLOTS do RequestSellItem( i, 25000 ) end end)	
 end
 
 function DV2P.GenerateAllMiningOres(systems)
