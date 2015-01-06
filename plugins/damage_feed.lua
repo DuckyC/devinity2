@@ -49,13 +49,17 @@ end)
 hook.Add("Think", "DamageFeedNotes", function()
 	for k,v in pairs(damage) do
 		if v.Time+1 < os.time() then
-			LocalPlayer():AddNote(k:GetName().." hit you for "..string.Comma(v.TDmg).." damage. ("..v.Hits.." hits)")
+			if IsValid( k ) then
+				LocalPlayer():AddNote(k:GetName().." hit you for "..string.Comma(v.TDmg).." damage. ("..v.Hits.." hits)")
+			end
 			damage[k] = nil
 		end
 	end
 	for k,v in pairs(targets) do
 		if v.Time+1 < os.time() then
-			LocalPlayer():AddNote("you hit "..k:GetName().." for "..string.Comma(v.TDmg).." damage. ("..v.Hits.." hits)")
+			if IsValid( k ) then
+				LocalPlayer():AddNote("you hit "..k:GetName().." for "..string.Comma(v.TDmg).." damage. ("..v.Hits.." hits)")
+			end
 			targets[k] = nil
 		end
 	end
