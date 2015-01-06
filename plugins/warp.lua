@@ -55,9 +55,10 @@ function PLUGIN:SetWarpDestination( pos, fpos )
 
 	PDist = PDist or 0
 	ADist = ADist or 0
+	/*
 	print( "Predicted Arrive dist: ", ADist, ADist + 999 )
 	print( "Predicted slowdown dist: ", SDist )
-	print( "Predicted dist: ", PDist, PDist + 999 )
+	print( "Predicted dist: ", PDist, PDist + 999 )*/
 	local p, fp = CleanupPos( pos, fpos + NormDir * ( PDist + 999 ) )
 
 	lp:SetWarpDestination( p, fp )
