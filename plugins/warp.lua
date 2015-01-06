@@ -140,3 +140,7 @@ end )
 -- 103395333.55678	966.35
 
 
+DV2P.OFF.AddFunction( "DrawMapEnts_MenuAddOption", "ExtraWarpOptions", function( menu, v, Pos, Dis, SPos )
+	if (Dis > 20000) then menu:AddOption( "Pinpoint Warp to", function() lp:SetPinpointWarpDestination(v.Pos,v.FloatPos) end ):SetColor(MAIN_TEXTCOLOR) end
+	
+end)
