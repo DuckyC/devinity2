@@ -2,6 +2,11 @@ local lp = LocalPlayer()
 local MapEntsLookupTable = {["AsteroidField"] = 1,["Planet"] = 1,["Station"] = 1,["GasCloud"] = 1,["BlackHole"] = 1}
 
 function DV2P.GetDistance(ent1, ent2)
+	if not ent1 or not ent2 then return 0 end
+	if not (ent1.PlayerPos and ent1.PlayerPos or ent1.Pos) then return 0 end
+	if not (ent2.PlayerPos and ent2.PlayerPos or ent2.Pos) then return 0 end
+	if not ent1.FloatPos or not ent2.FloatPos then return 0 end
+
 	return ( ( (ent1.PlayerPos and ent1.PlayerPos or ent1.Pos) - (ent2.PlayerPos and ent2.PlayerPos or ent2.Pos) ) + ( ent1.FloatPos - ent2.FloatPos ) ):Length()
 end
 
@@ -31,7 +36,9 @@ function DV2P.IsAt(Class)
 	return AtClass == Class 
 end
 
-function DV2P.GetNearest( Class )
+function DV2P.GetNearest( Class, nth )
+	nth = nth or 1
+
 	local objects = {}
 	local count = 0
 	for k,v in pairs( GAMEMODE.MapEnts ) do
@@ -42,8 +49,8 @@ function DV2P.GetNearest( Class )
 	end
 	
 	table.sort( objects, DV2P.DistanceSort )
-	if count > 0 and objects[ 1 ] then
-		return objects[ 1 ]
+	if count > 0 and objects[ nth ] then
+		return objects[ nth ]
 	end
 end
 function DV2P.WarpToNearest(Class)
@@ -108,10 +115,12 @@ function DV2P.ClearTargets()
 end
 
 function DV2P.IsSlotFiring( k )
+	if not lp.ActiveSlots then return false end
+	
 	local slot = lp.ActiveSlots[ k ]
 	if not slot then return false end
 
-	return slot.Time + 1 > CurTime()
+	return slot.Time > CurTime()
 end
 
 function DV2P.IsAnySlotTimersRunning( bool )
@@ -126,69 +135,87 @@ end
 
 DV2P._fireAllData = DV2P._fireAllData or nil
 local lastCheck = 0
+local slotI = nil
+local dat = nil
 hook.Add( "Think", "DV2P_FireAll_Check", function()
 	if CurTime() < lastCheck then return end
-	lastCheck = CurTime() + 1
+	local nextInterval = 0.2
 
 	if DV2P._fireAllData ~= nil then
 		if not lp.Equipment then return end
-		if DV2P.IsAnySlotTimersRunning( DV2P._fireAllData.bool ) then return end
 
-		local allSet = true
-		for k, v in pairs( lp.Equipment ) do
-			if DV2P.IsSlotFiring( k ) ~= DV2P._fireAllData.bool then
-				allSet = false
-				break
-			end
+		if not next( DV2P._fireAllData ) then
+			DV2P._fireAllData = nil
+			return
 		end
 
-		if allSet then
-			DV2P._fireAllData = nil
+		if slotI == nil then
+			slotI, dat = next( DV2P._fireAllData )
+		end
+
+		local item = lp.Equipment[ slotI ]
+		if dat ~= nil and item ~= nil then
+			if DV2P.IsSlotFiring( slotI ) ~= dat.bool then
+				if dat._on ~= dat.bool then
+					if dat.bool and dat.targetSlot then
+						lp.PrimaryTarget = dat.targetSlot
+					end
+					ToggleFire( slotI, dat.bool )
+					dat._time = CurTime() + 2
+					dat._on = dat.bool
+				else
+					nextInterval = 0
+
+					if CurTime() > dat._time then
+						dat._on = not dat.bool
+					end
+
+					slotI, dat = next( DV2P._fireAllData, slotI )
+				end
+			else
+				nextInterval = 0
+				if dat.iter >= 2 then
+					DV2P._fireAllData[ slotI ] = nil
+				else
+					dat.iter = dat.iter + 1
+				end
+
+				slotI, dat = next( DV2P._fireAllData, slotI )
+			end
 		else
-			DV2P.FireAll( DV2P._fireAllData.class, DV2P._fireAllData.bool )
+			nextInterval = 0
+			DV2P._fireAllData[ slotI ] = nil
+			slotI, dat = next( DV2P._fireAllData, slotI )
 		end
 	end
+
+	lastCheck = CurTime() + nextInterval
 end )
 
-function DV2P.FireAll(Class, bool)
+function DV2P.FireAll(Class, bool, targetSlot)
 	if bool == nil then bool = true end
 	if not lp.Equipment then return end
 
-	if DV2P.IsAnySlotTimersRunning( bool ) then return end
+	DV2P._fireAllData = DV2P._fireAllData or {}
 
-	local i = 0
-	for k, v in pairs( lp.Equipment ) do 
+	slotI = nil
+	for k, v in pairs( lp.Equipment ) do
+		if k > 63 then break end
+
 		if not Class or v.Class == Class then
-			if bool then
-				if timer.Exists( "DV2P_FireAll_" .. k .. tostring( false ) ) then
-					timer.Remove( "DV2P_FireAll_" .. k .. tostring( false ) )
-				end
-			else
-				if timer.Exists( "DV2P_FireAll_" .. k .. tostring( true ) ) then
-					timer.Remove( "DV2P_FireAll_" .. k .. tostring( true ) )
-				end
-			end
-
-			if timer.Exists( "DV2P_FireAll_" .. k .. tostring( bool ) ) then continue end
+			--if DV2P.IsSlotFiring( k ) ~= bool then
+			if DV2P._fireAllData[ k ] and DV2P._fireAllData[ k ].bool == bool then continue end
 			
-			if bool then
-				if DV2P.IsSlotFiring( k ) then continue end
-			else
-				if not DV2P.IsSlotFiring( k ) then continue end
-			end
-
-			timer.Create( "DV2P_FireAll_" .. k .. tostring( bool ), 0.2 * i, 1, function()
-				ToggleFire( k, bool )
-			end )
-
-			i = i + 1
+			DV2P._fireAllData[ k ] = {
+				on = nil,
+				bool = bool,
+				class = Class,
+				targetSlot = targetSlot,
+				iter = 1,
+			}
+			--end
 		end
 	end
-
-	DV2P._fireAllData = {
-		bool = bool,
-		class = Class,
-	}
 end
 
 function DV2P.GetNearestNPC(maxdistance)

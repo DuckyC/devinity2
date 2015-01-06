@@ -278,11 +278,11 @@ function PLUGIN:NextPath()
 end
 
 function PLUGIN:Mine()
-	local Asteroid = DV2P.GetNearest("Asteroid")
+	local Asteroid = DV2P.GetNearest( "Asteroid" )
 	if not Asteroid then return false end
 
-	lp:RequestTarget( Asteroid.ID, 1, false, false)
-	DV2P.FireAll("Mining Laser")
+	lp:RequestTarget( Asteroid.ID, 1, false, false )
+	DV2P.FireAll( "Mining Laser", true, 1 )
 end
 
 function PLUGIN:StopMine()
@@ -290,10 +290,11 @@ function PLUGIN:StopMine()
 end
 
 function PLUGIN:CheckForPirates()
-	local Pirate = DV2P.GetNearestNPC(5000)
-	if not Pirate then DV2P.FireAll("Pulse Cannon", false) return end
-	lp:RequestTarget(Pirate:GetIndex(),2,false,true)
-	DV2P.FireAll("Pulse Cannon")
+	local Pirate = DV2P.GetNearestNPC( 5000 )
+	if not Pirate then DV2P.FireAll( "Pulse Cannon", false ) return end
+
+	lp:RequestTarget( Pirate:GetIndex(), 2, false, true )
+	DV2P.FireAll( "Pulse Cannon", true, 2 )
 end
 
 function PLUGIN:CheckInventory( id )
