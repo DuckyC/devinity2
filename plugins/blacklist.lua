@@ -375,13 +375,11 @@ function PLUGIN:Think()
 						sound.PlayFile( "sound/ambient/alarms/apc_alarm_loop1.wav", "noplay", function( snd, errID, err )
 							snd:EnableLooping( false )
 							snd:Play()
-							
-							for i = 1, 2 do
-								timer.Simple( i * 2, function()
-									snd:SetTime( 0 )
-									snd:Play()
-								end )
-							end
+								
+							timer.Create( "DV2P_Blacklist_Alarm", 2, 3, function()
+								snd:SetTime( 0 )
+								snd:Play()
+							end )
 						end )
 					end
 				end
