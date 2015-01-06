@@ -1,16 +1,10 @@
-
-DV2P.Overrides.DrawTargetHUD = DV2P.Overrides.DrawTargetHUD or DrawTargetHUD
-DV2P.Overrides.DrawMapEnts = DV2P.Overrides.DrawMapEnts or DrawMapEnts
-
-function DrawTargetHUD()
-	DV2P.OFF.RunFunction( "Pre_DrawTargetHUD" )
-	DV2P.Overrides.DrawTargetHUD()
-	DV2P.OFF.RunFunction( "Post_DrawTargetHUD" )
-end
-
-
 local Mat1 = surface.GetTextureID("devinity2/hud/target_white")
+local Mat2 = Material("devinity2/hud/asteroid.png")
 local DMC  = Color(30,60,90,250)
+local TC   = Color(40,40,40)
+local ListX = ScrW()-330
+local ListY = 200
+local ListH = 20
 
 local DisplayTable = {
 	"AsteroidField",
@@ -28,6 +22,21 @@ local DisplayTableIcons = {
 	["CargoDrop"] 		= Material("devinity2/hud/box.png"),
 	["BlackHole"] 		= Material("devinity2/hud/box.png"),
 }
+
+local Comma  = string.Comma
+
+
+
+DV2P.Overrides.DrawTargetHUD = DV2P.Overrides.DrawTargetHUD or DrawTargetHUD
+DV2P.Overrides.DrawMapEnts = DV2P.Overrides.DrawMapEnts or DrawMapEnts
+
+function DrawTargetHUD()
+	DV2P.OFF.RunFunction( "Pre_DrawTargetHUD" )
+	DV2P.Overrides.DrawTargetHUD()
+	DV2P.OFF.RunFunction( "Post_DrawTargetHUD" )
+end
+
+
 
 function DrawMapEnts()
 	local lp 	= LocalPlayer()
@@ -54,7 +63,7 @@ function DrawMapEnts()
 					
 					DrawTexturedRectRotated(SPos.x,SPos.y,16,16,MAIN_WHITECOLOR,Mat1,CurT*-300)
 					DrawText(v.Class.." "..k,"DVTextSmall",SPos.x+12,SPos.y-15,MAIN_WHITECOLOR)
-					DrawText(string.Comma(Di).." "..Na,"DefaultSmall",SPos.x+12,SPos.y,MAIN_WHITECOLOR)
+					DrawText(Comma(Di).." "..Na,"DefaultSmall",SPos.x+12,SPos.y,MAIN_WHITECOLOR)
 					
 					if (input.MousePress(MOUSE_RIGHT,"MapMouse") and !lp:IsTargetting(v)) then
 						local menu = DermaMenu() 
