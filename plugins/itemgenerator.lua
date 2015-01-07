@@ -1,9 +1,75 @@
 PLUGIN.Name = "Item Generator"
+PLUGIN.Description = "Different kinds of item generators"
+
+local lp = LocalPlayer()
+
+local RaritiyMaterials = {
+	Common = Material("devinity2/hud/item_resources/bg_common.png"),
+	Uncommon = Material("devinity2/hud/item_resources/bg_uncommon.png"),
+	Rare = Material("devinity2/hud/item_resources/bg_rare.png"),
+	Legendary = Material("devinity2/hud/item_resources/bg_legend.png"),
+}
+local Rarities = {"Common", "Uncommon", "Rare","Legendary"}
+
+function PLUGIN:PanelSetup( container )
+	self:SetPanelSize( 400, 300 )
+
+	local Tree = vgui.Create("MBTree", container)
+	Tree:SetPos(5,0)
+	Tree:SetSize(390,295)
+	Tree:EnableNodeBG( false )
+	Tree.Paint = function(s,w,h)
+		DrawOutlinedRect(0,0,w,h,MAIN_GUICOLOR)
+	end
+	Tree.selecCol = MAIN_COLORD
+	Tree:SetVisible(false)
+	
+	local btnGenerate = vgui.Create( "DVButton", container )
+	btnGenerate:SetText( "Generate" )
+	btnGenerate.DoClick = function( pnl, w, h)
+		Tree:SetVisible(true)
+		btnGenerate:SetVisible(false)
+		DV2P.GetPlugin( "Item Generator" ):PopulateTreeWithRecipies(Tree)
+	end
+	self.derma.btnGenerate = btnGenerate
+end
+
+function PLUGIN:PopulateTreeWithRecipies(Tree)
+	local wps = DV2P.GetPlugin( "Item Generator" ):GenerateRecipeList()
+
+	for _,ShipType in pairs(GetShipTypes()) do
+		local ShipTypeNode = Tree:AddNode(ShipType)
+		for WeaponClass, Data  in pairs(GetClasses()) do
+			local WeaponClassNode = ShipTypeNode:AddNode(WeaponClass)
+			WeaponClassNode.Icon:SetMaterial(Data[1])
+			for _,Rarity in pairs(Rarities) do
+				local RarityNode = WeaponClassNode:AddNode(Rarity)
+				RarityNode.Icon:SetMaterial(RaritiyMaterials[Rarity])
+				for _, Weapon in pairs(wps) do
+					if ShipType == Weapon.Type and WeaponClass == Weapon.Class and Rarity == Weapon.Rarity.Name then
+						local WeaponNode = RarityNode:AddNode(Weapon.Name)
+						WeaponNode.Icon:SetMaterial(RaritiyMaterials[Rarity])
+						WeaponNode.DoClick = function(self)
+							local RealWeapon = DV2P.GetPlugin( "Item Generator" ):CraftIDToWepon( Weapon.CraftID ) 
+							WeaponNode.Paint = function()
+								local LineHeight = WeaponNode:GetLineHeight()
+								DrawItemIcon( WeaponNode.Expander.x + WeaponNode.Expander:GetWide() + 4, (LineHeight - WeaponNode.Icon:GetTall()) * 0.5, 16, 16, RealWeapon, 1, WeaponNode, true )
+							end
+							WeaponNode.Icon:SetVisible( false )
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
+function PLUGIN:PanelPerformLayout( container, w, h )
+	self.derma.btnGenerate:SetPos( 10, 0 )
+	self.derma.btnGenerate:SetSize( w - 20, 30 )
+end
 
 local count = table.Count(GAMEMODE.SolarSystems)
-local n = 10 //because metamist logic
-local max = (n*(2*count-n+1))/2
-
 function PLUGIN:GetOresForCraftingID( id, numOres )
 	numOres = numOres or 10
 
@@ -41,15 +107,16 @@ function PLUGIN:GetOresForCraftingID( id, numOres )
 	table.sort( newList )
 	return newList, total
 end
-/*
-if not wep or wep.Rarity.Name == "Common" or wep.Rarity.Name == "Uncommon" or wep.Class == "Laser" then continue end
-weapon[wep.Type] = weapon[wep.Type] or {}
-		weapon[wep.Type][wep.Class] = weapon[wep.Type][wep.Class] or {}
-		weapon[wep.Type][wep.Class][wep.Rarity] = weapon[wep.Type][wep.Class][wep.Rarity] or {}
-		local parent = weapon[wep.Type][wep.Class][wep.Rarity]
 
-		parent[#parent+1] = {CraftID = Ore2.ID + 1, Damage = wep.Dmg, DPS = wep.Dmg / wep.CD, Cooldown = wep.CD, Price = wep.Price}
-*/
+function PLUGIN:CraftIDToWepon(CraftID)
+	local IDs = DV2P.GetPlugin( "Item Generator" ):GetOresForCraftingID( CraftID )
+	local Ores = {}
+	for i,ID in pairs(IDs) do
+		Ores[i] = GenerateItem(ID,GAMEMODE.SolarSystems[ID].Tech+lp:GetSkillLevel("Mining")^2,"Resource","Any",true)
+	end
+	return CraftItem(Ores ,lp:GetSkillLevel("Crafting")^2)
+end
+
 function PLUGIN:GenerateRecipeList()
 	local Ore1 = {
 		Tech = 1052,
@@ -59,7 +126,7 @@ function PLUGIN:GenerateRecipeList()
 	local Ore2 = table.Copy(Ore1)
 	
 	local weps = {}
-	for i=55, max do
+	for i=55, (10*(2*count-10+1))/2 do
 		Ore2.ID = Ore2.ID + 1		
 		local wep = CraftItem({Ore1, Ore2})
 		wep.CraftID = Ore2.ID+1
