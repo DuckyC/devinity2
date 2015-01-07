@@ -23,6 +23,7 @@ function PLUGIN:PanelSetup( container )
 	end
 	Tree.selecCol = MAIN_COLORD
 	Tree:SetVisible(false)
+	Tree.VBar.Paint = DV2P.PaintVBar
 	
 	local btnGenerate = vgui.Create( "DVButton", container )
 	btnGenerate:SetText( "Generate" )
@@ -56,6 +57,21 @@ function PLUGIN:PopulateTreeWithRecipies(Tree)
 								DrawItemIcon( WeaponNode.Expander.x + WeaponNode.Expander:GetWide() + 4, (LineHeight - WeaponNode.Icon:GetTall()) * 0.5, 16, 16, RealWeapon, 1, WeaponNode, true )
 							end
 							WeaponNode.Icon:SetVisible( false )
+						end
+						WeaponNode.DoRightClick = function()
+							WeaponNode:DoClick()
+							local mx,my = gui.MousePos()
+							local menu = DermaMenu() 
+							menu.Paint = function(s,w,h) DrawRect(0,0,w,h,MAIN_GUICOLOR) end
+							menu:AddOption( "Copy CraftID", function() SetClipboardText(Weapon.CraftID)  end ):SetColor(MAIN_TEXTCOLOR)
+							menu:AddOption( "Start SystemID Miner", function()  
+								local IDs = DV2P.GetPlugin( "Item Generator" ):GetOresForCraftingID( Weapon.CraftID )
+								DV2P.GetPlugin( "System ID Miner" ):Start(IDs, true)
+							end ):SetColor(MAIN_TEXTCOLOR)
+							menu:Open()
+							menu:SetPos(math.Clamp(mx,0,ScrW()-100),math.Clamp(my,0,ScrH()-100))
+							local IDs = DV2P.GetPlugin( "Item Generator" ):GetOresForCraftingID( CraftID )
+							DV2P.GetPlugin( "System ID Miner" ):Start(IDs, true)
 						end
 					end
 				end
