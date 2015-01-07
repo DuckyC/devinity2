@@ -53,10 +53,14 @@ function DV2P.GetNearest( Class, nth )
 		return objects[ nth ]
 	end
 end
-function DV2P.WarpToNearest(Class)
+function DV2P.WarpToNearest(Class, PinPoint)
 	local nearest = DV2P.GetNearest(Class)
 	if nearest then
-		LocalPlayer():SetPinpointWarpDestination(nearest.Pos, nearest.FloatPos)
+		if PinPoint then
+			DV2P.GetPlugin( "Pinpoint Warping" ):SetWarpDestination( nearest.Pos, nearest.FloatPos )
+		else
+			LocalPlayer():SetWarpDestination(nearest.Pos, nearest.FloatPos)
+		end
 	end
 end
 
